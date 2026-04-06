@@ -13,11 +13,14 @@
     <script>
       (function() {
         var lang = navigator.language || navigator.userLanguage || 'en';
-        var base = window.location.pathname.replace(/index\.[a-z]{2}\.html$/, '');
-        if (lang.startsWith('ca') || lang.startsWith('ca')) {
-          window.location.replace(base + 'index.ca.html');
-        } else if (!lang.startsWith('es')) {
-          window.location.replace(base + 'index.en.html');
+        var path = window.location.pathname;
+        var isDirect = !document.referrer || !document.referrer.includes('ismigar.github.io');
+        if (isDirect && (path.endsWith('index.html') || path === '/' || path.endsWith('/'))) {
+          if (lang.startsWith('ca')) {
+            window.location.replace('index.ca.html');
+          } else if (!lang.startsWith('es')) {
+            window.location.replace('index.en.html');
+          }
         }
       })();
     </script>
