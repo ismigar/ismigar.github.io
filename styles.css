@@ -80,6 +80,30 @@ h1, h2, h3, h4 {
   color: var(--ink);
 }
 
+.lang-switch {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.lang-switch a,
+.lang-switch span {
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+
+.lang-switch a:hover {
+  background: var(--bg-accent);
+  color: var(--ink);
+}
+
+.lang-switch span.active {
+  background: var(--gnosi-primary);
+  color: white;
+}
+
 /* Layout */
 main {
   max-width: 1100px;
