@@ -361,19 +361,32 @@
         </div>
         <div class="install-grid">
           <div class="install-card featured">
-            <div class="install-head"><span class="ic">🐳</span><h3>Self-host (Docker)</h3></div>
-            <span class="pill ok">Disponible</span>
-            <p>La forma recomendada para individuos y equipos. Empaqueta backend, frontend y el translation-server de Zotero.</p>
-            <div class="code-block"><span class="c"># 1 · Clona el repositorio</span>
+            <div class="install-head"><span class="ic">🏃</span><h3>Self-host (nativo)</h3></div>
+            <span class="pill ok">Recomendado</span>
+            <p>Gnosi es un backend FastAPI + un frontend Vite. Se ejecutan directamente, sin contenedores.</p>
+            <div class="code-block"><span class="c"># 1 · Backend (FastAPI)</span>
 <span class="p">$</span> git clone https://github.com/ismigar/Gnosi.git
 <span class="p">$</span> cd Gnosi/apps/gnosi
+<span class="p">$</span> python3 -m venv .venv && source .venv/bin/activate
+<span class="p">$</span> pip install -r requirements.txt
+<span class="p">$</span> uvicorn backend.server:app --port 5002 --reload
 
-<span class="c"># 2 · Arranca los servicios</span>
-<span class="p">$</span> docker compose up -d --build
+<span class="c"># 2 · Frontend (en otra terminal)</span>
+<span class="p">$</span> cd Gnosi/apps/gnosi/frontend && npm install && npm run dev
 
 <span class="c"># 3 · Abre la app</span>
 <span class="p">→</span> http://localhost:5173</div>
-            <p class="install-note">Requiere Docker. Configura la ruta de tu vault y, opcionalmente, <a href="https://ollama.com/" target="_blank" rel="noreferrer">Ollama</a> para IA local. Guía completa en el <a href="https://github.com/ismigar/Gnosi#readme" target="_blank" rel="noreferrer">README</a>.</p>
+            <p class="install-note">Opcional: <a href="https://ollama.com/" target="_blank" rel="noreferrer">Ollama</a> para IA local. Guía completa en el <a href="https://github.com/ismigar/Gnosi#readme" target="_blank" rel="noreferrer">README</a>.</p>
+          </div>
+
+          <div class="install-card">
+            <div class="install-head"><span class="ic">🐳</span><h3>Docker</h3></div>
+            <span class="pill soon">Opcional</span>
+            <p>¿Prefieres un solo comando o desplegar en un servidor? Docker agrupa backend, frontend y el translation-server de Zotero.</p>
+            <div class="code-block"><span class="p">$</span> cd Gnosi/apps/gnosi
+<span class="p">$</span> docker compose up -d --build
+<span class="p">→</span> http://localhost:5173</div>
+            <p class="install-note">Alternativa todo-en-uno. No es necesaria para usar Gnosi.</p>
           </div>
 
           <div class="install-card">
