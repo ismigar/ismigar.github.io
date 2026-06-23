@@ -17,9 +17,9 @@
         var isDirect = !document.referrer || !document.referrer.includes(window.location.hostname);
         if (isDirect && (path.endsWith('index.html') || path === '/' || path.endsWith('/'))) {
           if (lang.startsWith('ca')) {
-            window.location.replace('/index.ca.html');
+            window.location.replace('index.ca.html');
           } else if (lang.startsWith('es')) {
-            window.location.replace('/index.es.html');
+            window.location.replace('index.es.html');
           }
         }
       })();
@@ -40,9 +40,9 @@
           <a href="https://github.com/ismigar/Gnosi" target="_blank" rel="noreferrer">GitHub</a>
         </div>
         <div class="lang-switch">
-          <a href="/index.es.html">ES</a>
+          <a href="index.es.html">ES</a>
           <span class="active">CA</span>
-          <a href="/index.html">EN</a>
+          <a href="index.html">EN</a>
         </div>
       </div>
     </nav>
