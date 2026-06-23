@@ -15,7 +15,7 @@
         var lang = navigator.language || navigator.userLanguage || 'en';
         var path = window.location.pathname;
         var isDirect = !document.referrer || !document.referrer.includes(window.location.hostname);
-        if (isDirect && (path.endsWith('index.html') || path === '/' || path.endsWith('/'))) {
+        if (window.location.protocol !== 'file:' && isDirect && (path.endsWith('index.html') || path === '/' || path.endsWith('/'))) {
           if (lang.startsWith('ca')) {
             window.location.replace('index.ca.html');
           } else if (lang.startsWith('es')) {
