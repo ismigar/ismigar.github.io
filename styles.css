@@ -1321,3 +1321,10 @@ footer {
   background: var(--gnosi-primary-dark);
   border-color: var(--gnosi-primary-dark);
 }
+
+/* TEMPORAL (2026-07-06): bloc "Solucions Cloud i per a Equips" amagat fins que
+   el servei SaaS/B2B estigui actiu. Per REACTIVAR-LO: esborra aquestes 3 línies.
+   El markup es conserva a index.html / .ca / .es / .en. */
+.saas-box {
+  display: none;
+}
