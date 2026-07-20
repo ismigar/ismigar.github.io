@@ -806,6 +806,64 @@
       </div>
     </section>
 
+    <section id="connectors" class="install">
+      <div class="section-header">
+        <h2>Conectores</h2>
+        <p>Lleva Gnosi a Word, LibreOffice y tu navegador</p>
+      </div>
+      <div class="install-grid">
+        <div class="install-card">
+          <div class="install-head"><span class="ic">📝</span><h3>Word (Gnosi Cite)</h3></div>
+          <span class="pill ok">Disponible · beta</span>
+          <p>Office Add-in que inserta y gestiona citas de tu vault de Gnosi en Microsoft Word, estilo Mendeley Cite. APA 7, Chicago, MLA, IEEE.</p>
+          <ul>
+            <li>Descarga el manifiesto y cárgalo en Word (sideload)</li>
+            <li>Requiere Gnosi accesible por HTTPS (localhost por defecto)</li>
+            <li>Pega tu token de API (Configuración → API y tokens)</li>
+            <li>Word 2019+ en Windows, Mac y la Web</li>
+          </ul>
+          <p class="install-note">Para cualquier despliegue distinto de localhost, sustituye antes la URL del manifiesto. <a
+              href="https://github.com/ismigar/Gnosi/releases/latest/download/gnosi-word-addin-manifest.xml" target="_blank"
+              rel="noreferrer">Descargar manifiesto</a> · <a
+              href="https://github.com/ismigar/Gnosi/tree/main/apps/gnosi/frontend/public/word-addin" target="_blank"
+              rel="noreferrer">README</a>.</p>
+        </div>
+
+        <div class="install-card">
+          <div class="install-head"><span class="ic">📘</span><h3>LibreOffice</h3></div>
+          <span class="pill ok">Disponible</span>
+          <p>Extensión para Writer (.oxt) que inserta citas y genera bibliografías automáticas desde tu vault de Gnosi. Mismos estilos CSL y pipeline pandoc que el add-in de Word.</p>
+          <ul>
+            <li>Descarga el .oxt y añádelo desde Herramientas → Extensiones</li>
+            <li>Reinicia LibreOffice</li>
+            <li>Gnosi Cite → Configuración → indica la URL del backend</li>
+            <li>LibreOffice 5.0+ (macOS, Windows, Linux)</li>
+          </ul>
+          <p class="install-note">Funciona con documentos .odt y .docx. <a
+              href="https://github.com/ismigar/Gnosi/releases/latest/download/gnosi-cite.oxt" target="_blank"
+              rel="noreferrer">Descargar .oxt</a> · <a
+              href="https://github.com/ismigar/Gnosi/tree/main/apps/gnosi/integrations/libreoffice-cite" target="_blank"
+              rel="noreferrer">README</a>.</p>
+        </div>
+
+        <div class="install-card">
+          <div class="install-head"><span class="ic">🌐</span><h3>Web Clipper</h3></div>
+          <span class="pill ok">Disponible</span>
+          <p>Extensión de navegador (Chrome/Edge/Brave, Manifest V3) para guardar páginas web —o solo la selección de texto— directamente en tu vault de Gnosi como notas.</p>
+          <ul>
+            <li>Crea un token de API en Gnosi (Configuración → API y tokens)</li>
+            <li>Descarga y descomprime la extensión</li>
+            <li>Cárgala sin empaquetar en chrome://extensions (modo desarrollador)</li>
+            <li>Popup → pon tu URL de Gnosi y pega el token</li>
+          </ul>
+          <p class="install-note">Las páginas guardadas van a la carpeta <code>Clips/</code> del vault. <a
+              href="https://github.com/ismigar/Gnosi/releases/latest/download/gnosi-web-clipper.zip" target="_blank"
+              rel="noreferrer">Descargar .zip</a> · <a href="https://github.com/ismigar/Gnosi/tree/main/apps/gnosi/web-clipper"
+              target="_blank" rel="noreferrer">README</a>.</p>
+        </div>
+      </div>
+    </section>
+
     <section id="colaborar" class="support">
       <div class="section-header">
         <h2>Sostenibilidad y comunidad</h2>
