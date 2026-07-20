@@ -1000,6 +1000,8 @@ footer {
 .install-card.featured { border-color: var(--gnosi-primary); border-width: 2px; }
 .install-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .install-head .ic { font-size: 26px; }
+.install-head .ic.brand-logo { display: inline-flex; align-items: center; justify-content: center; }
+.install-head .ic.brand-logo svg { width: 28px; height: 28px; display: block; }
 .install-head h3 { font-size: 20px; }
 .install-card > p { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
 .pill {
