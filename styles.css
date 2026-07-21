@@ -1029,7 +1029,31 @@ footer {
 .code-block .c { color: #64748b; }
 .code-block .p { color: #38bdf8; }
 .install-note { font-size: 13px; color: var(--muted); margin-top: 14px; }
-.install-note a { color: var(--gnosi-primary-dark); text-decoration: underline; }
+/* Inline links inside body copy: brand color and weight carry the affordance,
+   the underline only shows on hover — the rest of the site has no underlines. */
+.install-note a,
+.install-card li a,
+.install-card p a {
+  color: var(--gnosi-primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.install-note a:hover,
+.install-card li a:hover,
+.install-card p a:hover {
+  color: var(--gnosi-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.install-note a:focus-visible,
+.install-card li a:focus-visible,
+.install-card p a:focus-visible {
+  outline: 2px solid var(--gnosi-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
 .install-card ul { list-style: none; margin-top: 8px; }
 .install-card li { font-size: 14px; color: var(--ink); padding: 6px 0 6px 26px; position: relative; }
 .install-card li::before { content: "✓"; position: absolute; left: 0; color: var(--gnosi-primary); font-weight: 700; }
