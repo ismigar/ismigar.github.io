@@ -26,14 +26,14 @@ a:focus-visible { outline: 2px solid var(--gnosi-primary); outline-offset: 2px; 
 <body>
 
 <h1>Gnosi Privacy Policy</h1>
-<small>Last updated: May 7, 2026</small>
+<small>Last updated: July 27, 2026</small>
 
 <div class="box">
-<strong>Summary:</strong> Gnosi is a personal application for private use. All data is processed locally on the user's device. No data is transmitted to or stored on third-party servers other than the user's own (Google APIs, mail accounts, etc.) for authentication and access to their own data.
+<strong>Summary:</strong> The Gnosi application processes its working data locally on the user's device. The public landing website uses Google Analytics 4 with IP anonymization and Google Signals disabled to measure aggregate visits and link clicks.
 </div>
 
 <h2>Who we are</h2>
-<p>Gnosi is a personal project maintained by Ismael Garcia Fernandez (<a href="mailto:ismigar@gmail.com">ismigar@gmail.com</a>). It is not a commercial service. It has no monetization.</p>
+<p>Gnosi is an open-source project maintained by Ismael Garcia Fernandez (<a href="mailto:ismigar@gmail.com">ismigar@gmail.com</a>). Optional paid deployment and support work may be offered separately; the application remains self-hostable.</p>
 
 <h2>What data Gnosi uses</h2>
 <p>With the user's explicit OAuth2 authorization, Gnosi may access the following data from the user's Google accounts:</p>
@@ -45,14 +45,15 @@ a:focus-visible { outline: 2px solid var(--gnosi-primary); outline-offset: 2px; 
 </ul>
 
 <h2>Where data is stored</h2>
-<p>All data obtained via OAuth2 is stored <strong>exclusively on the user's local device</strong> (filesystem, local Vault). Gnosi never sends, shares, sells, or stores data on third-party servers, nor does it perform aggregate behavioral analysis.</p>
+<p>All data obtained via OAuth2 is stored <strong>exclusively on the user's local device</strong> (filesystem, local Vault). Gnosi never sells user data or uses the application's content for behavioural advertising.</p>
 <p>OAuth2 tokens (access_token and refresh_token) are stored in the <code>integrations.json</code> file protected by the user's filesystem permissions.</p>
 
 <h2>How to delete your data</h2>
 <p>The user can revoke access at any time from <a href="https://myaccount.google.com/permissions">Google Account permissions</a>. The user can also delete the local Vault files and configuration.</p>
 
-<h2>Cookies and tracking</h2>
-<p>Gnosi does not use tracking cookies, analytics, or third-party services beyond the APIs explicitly authorized by the user.</p>
+<h2>Website analytics</h2>
+<p>The public website loads Google Analytics 4 to measure page views and clicks on outbound links such as downloads, GitHub Sponsors and Ko-fi. The configuration uses IP anonymization and disables Google Signals. This measurement is limited to understanding reach and conversion paths; it is not used to sell personal data or serve advertising.</p>
+<p>Google may process this information under its own terms. You can block analytics with your browser privacy settings or a content blocker. The application itself does not load website analytics.</p>
 
 <h2>Changes to this policy</h2>
 <p>If the policy changes, the updated version will appear at this same URL with the new date. The latest version is always authoritative.</p>

@@ -31,7 +31,11 @@
     const url = new URL(link.href);
     const hostname = url.hostname;
     let eventName = 'outbound_click';
-    if (hostname === 'github.com' || hostname === 'www.github.com') {
+    if (hostname === window.location.hostname && url.pathname.startsWith('/go/github-sponsors/')) {
+      eventName = 'github_sponsor_click';
+    } else if (hostname === window.location.hostname && url.pathname.startsWith('/go/kofi/')) {
+      eventName = 'ko_fi_click';
+    } else if (hostname === 'github.com' || hostname === 'www.github.com') {
       if (url.pathname === '/sponsors/ismigar') {
         eventName = 'github_sponsor_click';
       } else if (url.pathname.startsWith('/ismigar/Gnosi/releases')) {
@@ -41,7 +45,7 @@
       } else {
         eventName = 'github_click';
       }
-    } else if (hostname === 'ko-fi.com' && url.pathname === '/ismigar') {
+    } else if (hostname === 'ko-fi.com' && (url.pathname === '/ismigar' || url.pathname === '/ismaelgarciafernandez')) {
       eventName = 'ko_fi_click';
     } else if (hostname === 'ollama.com') {
       eventName = 'partner_click';
