@@ -2,7 +2,7 @@
  * Replace the placeholder with the GA4 Measurement ID to enable collection.
  */
 (function () {
-  const measurementId = 'G-XXXXXXXXXX';
+  const measurementId = 'G-JJTYPXLG4S';
 
   if (measurementId === 'G-XXXXXXXXXX') {
     return;
