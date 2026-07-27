@@ -32,8 +32,18 @@
     const hostname = url.hostname;
     let eventName = 'outbound_click';
     if (hostname === 'github.com' || hostname === 'www.github.com') {
-      eventName = 'github_click';
-    } else if (hostname === 'ko-fi.com' || hostname === 'ollama.com') {
+      if (url.pathname === '/sponsors/ismigar') {
+        eventName = 'github_sponsor_click';
+      } else if (url.pathname.startsWith('/ismigar/Gnosi/releases')) {
+        eventName = 'github_release_click';
+      } else if (url.pathname === '/ismigar/Gnosi' || url.pathname.startsWith('/ismigar/Gnosi/')) {
+        eventName = 'github_repo_click';
+      } else {
+        eventName = 'github_click';
+      }
+    } else if (hostname === 'ko-fi.com' && url.pathname === '/ismigar') {
+      eventName = 'ko_fi_click';
+    } else if (hostname === 'ollama.com') {
       eventName = 'partner_click';
     } else if (url.pathname.includes('/download/') || /\.(zip|oxt|xml)$/i.test(url.pathname)) {
       eventName = 'download_click';
