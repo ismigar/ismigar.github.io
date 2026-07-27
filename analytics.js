@@ -45,7 +45,7 @@
       } else {
         eventName = 'github_click';
       }
-    } else if (hostname === 'ko-fi.com' && (url.pathname === '/ismigar' || url.pathname === '/ismaelgarciafernandez')) {
+    } else if (hostname === 'ko-fi.com' && (url.pathname === '/ismigar' || url.pathname === '/ismaelgarciafernandez' || url.pathname === '/gnosi')) {
       eventName = 'ko_fi_click';
     } else if (hostname === 'ollama.com') {
       eventName = 'partner_click';
