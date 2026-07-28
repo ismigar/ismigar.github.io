@@ -104,7 +104,11 @@ export function buildDashboard(
   });
 
   const redirects = [...redirectsByDate.values()].reduce((sum, value) => sum + value, 0);
-  const repositoryViews = sumMetricDimension(currentRows, 'repository_views', 'total');
+  const totalRepositoryViews = sumMetricDimension(currentRows, 'repository_views', 'total');
+  const alternativeToRepositoryViews = latestMetric(
+    currentRows,
+    'alternativeto_github_views_14d',
+  );
   const releaseViews = latestMetric(currentRows, 'release_views_14d');
   const githubSync = syncRows.find((row) => String(row.source) === 'github');
   const trafficAvailable = !String(githubSync?.message ?? '').includes('required for traffic');
@@ -112,15 +116,21 @@ export function buildDashboard(
     { id: 'alternativeto', label: 'Clics des d’AlternativeTo', value: redirects },
     {
       id: 'repository',
-      label: 'Visites a GitHub',
-      value: trafficAvailable ? repositoryViews : null,
-      detail: trafficAvailable ? undefined : 'Cal un token de trànsit',
+      label: 'Visites GitHub des d’AlternativeTo',
+      value: trafficAvailable ? alternativeToRepositoryViews : null,
+      detail: trafficAvailable
+        ? alternativeToRepositoryViews > redirects
+          ? 'Inclou visites prèvies al redirect rastrejat · 14 dies'
+          : 'Referidor GitHub · finestra mòbil de 14 dies'
+        : 'Cal un token de trànsit',
     },
     {
       id: 'releases',
-      label: 'Visites a releases',
+      label: 'Visites totals a releases',
       value: trafficAvailable ? releaseViews : null,
-      detail: trafficAvailable ? 'Finestra mòbil de 14 dies' : 'Dada no disponible',
+      detail: trafficAvailable
+        ? 'Tot GitHub · finestra mòbil de 14 dies'
+        : 'Dada no disponible',
     },
     {
       id: 'downloads',
@@ -135,9 +145,11 @@ export function buildDashboard(
     ...item,
     conversion:
       index === 0 ||
+      index > 1 ||
       item.value === null ||
       funnelValues[index - 1].value === null ||
-      funnelValues[index - 1].value! <= 0
+      funnelValues[index - 1].value! <= 0 ||
+      item.value > funnelValues[index - 1].value!
         ? null
         : Math.round((item.value / funnelValues[index - 1].value!) * 1000) / 10,
   }));
@@ -182,7 +194,7 @@ export function buildDashboard(
     comparison: {
       redirects: safePercent(redirects, sumMetric(previousRows, 'alternativeto_redirects')),
       repositoryViews: safePercent(
-        repositoryViews,
+        totalRepositoryViews,
         sumMetricDimension(previousRows, 'repository_views', 'total'),
       ),
       releaseViews: safePercent(releaseViews, latestMetric(previousRows, 'release_views_14d')),

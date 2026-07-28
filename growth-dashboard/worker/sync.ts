@@ -83,6 +83,12 @@ interface GitHubPath {
   uniques: number;
 }
 
+interface GitHubReferrer {
+  referrer: string;
+  count: number;
+  uniques: number;
+}
+
 interface GitHubRelease {
   tag_name: string;
   assets: Array<{ id: number; name: string; download_count: number }>;
@@ -111,12 +117,14 @@ export async function syncGitHub(env: Env): Promise<void> {
     ]);
     let traffic: GitHubTraffic = {};
     let paths: GitHubPath[] = [];
+    let referrers: GitHubReferrer[] = [];
     let trafficAvailable = false;
     if (env.GITHUB_TOKEN) {
       try {
-        [traffic, paths] = await Promise.all([
+        [traffic, paths, referrers] = await Promise.all([
           githubFetch<GitHubTraffic>(env, `${ownerRepo}/traffic/views?per=day`),
           githubFetch<GitHubPath[]>(env, `${ownerRepo}/traffic/popular/paths`),
+          githubFetch<GitHubReferrer[]>(env, `${ownerRepo}/traffic/popular/referrers`),
         ]);
         trafficAvailable = true;
       } catch {
@@ -177,6 +185,17 @@ export async function syncGitHub(env: Env): Promise<void> {
     const releaseUniqueVisitors = paths
       .filter((item) => item.path.includes('/releases'))
       .reduce((sum, item) => sum + item.uniques, 0);
+    const alternativeToReferrers = referrers.filter((item) =>
+      item.referrer.toLowerCase().includes('alternativeto'),
+    );
+    const alternativeToGitHubViews = alternativeToReferrers.reduce(
+      (sum, item) => sum + item.count,
+      0,
+    );
+    const alternativeToGitHubUniqueVisitors = alternativeToReferrers.reduce(
+      (sum, item) => sum + item.uniques,
+      0,
+    );
     await Promise.all([
       insertMetric(
         env,
@@ -192,6 +211,24 @@ export async function syncGitHub(env: Env): Promise<void> {
         'github',
         'release_unique_visitors_14d',
         releaseUniqueVisitors,
+        currentDate,
+        'unique',
+        capturedAt,
+      ),
+      insertMetric(
+        env,
+        'github',
+        'alternativeto_github_views_14d',
+        alternativeToGitHubViews,
+        currentDate,
+        'total',
+        capturedAt,
+      ),
+      insertMetric(
+        env,
+        'github',
+        'alternativeto_github_unique_visitors_14d',
+        alternativeToGitHubUniqueVisitors,
         currentDate,
         'unique',
         capturedAt,

@@ -61,12 +61,13 @@ describe('GitHub traffic semantics', () => {
       { source: 'github', metric: 'repository_unique_visitors', dimension: 'unique', period_date: '2026-07-28', value: 4 },
       { source: 'github', metric: 'release_views_14d', dimension: 'total', period_date: '2026-07-27', value: 2 },
       { source: 'github', metric: 'release_views_14d', dimension: 'total', period_date: '2026-07-28', value: 3 },
+      { source: 'github', metric: 'alternativeto_github_views_14d', dimension: 'total', period_date: '2026-07-28', value: 2 },
     ];
     const dashboard = buildDashboard(
       currentRows,
       [],
       [],
-      new Map(),
+      new Map([['2026-07-28', 1]]),
       [],
       [{ source: 'github', status: 'healthy', last_success_at: '2026-07-28T12:00:00Z', message: '' }],
       '2026-07-27',
@@ -75,11 +76,17 @@ describe('GitHub traffic semantics', () => {
       '2026-07-26',
     );
 
-    expect(dashboard.funnel[1].value).toBe(31);
+    expect(dashboard.funnel[1]).toMatchObject({
+      value: 2,
+      conversion: null,
+      detail: 'Inclou visites prèvies al redirect rastrejat · 14 dies',
+    });
     expect(dashboard.funnel[2]).toMatchObject({
       value: 3,
-      detail: 'Finestra mòbil de 14 dies',
+      conversion: null,
+      detail: 'Tot GitHub · finestra mòbil de 14 dies',
     });
+    expect(dashboard.comparison.repositoryViews).toBe(100);
     expect(dashboard.timeline.map((point) => point.releaseViews)).toEqual([2, 3]);
   });
 });
