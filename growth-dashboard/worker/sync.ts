@@ -1,0 +1,424 @@
+import { ALTERNATIVETO_PARSER_VERSION, parseAlternativeTo } from './alternativeto';
+import type { Env } from './types';
+
+const GITHUB_API_VERSION = '2026-03-10';
+
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function now(): string {
+  return new Date().toISOString();
+}
+
+async function recordSync(
+  env: Env,
+  source: string,
+  status: 'healthy' | 'degraded' | 'error',
+  message = '',
+  parserVersion?: string,
+) {
+  const timestamp = now();
+  await env.DB.prepare(
+    `INSERT INTO sync_runs(source, last_attempt_at, last_success_at, status, message, parser_version)
+     VALUES (?, ?, CASE WHEN ? = 'healthy' THEN ? ELSE NULL END, ?, ?, ?)
+     ON CONFLICT(source) DO UPDATE SET
+       last_attempt_at = excluded.last_attempt_at,
+       last_success_at = CASE WHEN excluded.status = 'healthy' THEN excluded.last_attempt_at ELSE sync_runs.last_success_at END,
+       status = excluded.status,
+       message = excluded.message,
+       parser_version = COALESCE(excluded.parser_version, sync_runs.parser_version)`,
+  )
+    .bind(source, timestamp, status, timestamp, status, message, parserVersion ?? null)
+    .run();
+}
+
+async function insertMetric(
+  env: Env,
+  source: string,
+  metric: string,
+  value: number,
+  periodDate = today(),
+  dimension = '',
+  capturedAt = now(),
+) {
+  await env.DB.prepare(
+    `INSERT OR IGNORE INTO metric_snapshots
+      (source, metric, dimension, captured_at, period_date, value)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(source, metric, dimension, capturedAt, periodDate, value)
+    .run();
+}
+
+async function githubFetch<T>(env: Env, path: string): Promise<T> {
+  if (!env.GITHUB_TOKEN) throw new Error('GITHUB_TOKEN is not configured');
+  const response = await fetch(`https://api.github.com${path}`, {
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      'User-Agent': 'gnosi-growth-dashboard',
+      'X-GitHub-Api-Version': GITHUB_API_VERSION,
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`GitHub ${response.status}: ${await response.text()}`);
+  }
+  return response.json<T>();
+}
+
+interface GitHubRepo {
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+}
+
+interface GitHubTraffic {
+  views?: Array<{ timestamp: string; count: number; uniques: number }>;
+}
+
+interface GitHubPath {
+  path: string;
+  count: number;
+  uniques: number;
+}
+
+interface GitHubRelease {
+  tag_name: string;
+  assets: Array<{ id: number; name: string; download_count: number }>;
+}
+
+interface GitHubIssue {
+  created_at: string;
+  closed_at: string | null;
+  pull_request?: unknown;
+}
+
+interface GitHubPull {
+  created_at: string;
+  merged_at: string | null;
+}
+
+export async function syncGitHub(env: Env): Promise<void> {
+  const capturedAt = now();
+  try {
+    const ownerRepo = `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}`;
+    const [repo, traffic, paths, releases, issues, pulls] = await Promise.all([
+      githubFetch<GitHubRepo>(env, ownerRepo),
+      githubFetch<GitHubTraffic>(env, `${ownerRepo}/traffic/views?per=day`),
+      githubFetch<GitHubPath[]>(env, `${ownerRepo}/traffic/popular/paths`),
+      githubFetch<GitHubRelease[]>(env, `${ownerRepo}/releases?per_page=100`),
+      githubFetch<GitHubIssue[]>(env, `${ownerRepo}/issues?state=all&per_page=100&sort=updated&direction=desc`),
+      githubFetch<GitHubPull[]>(env, `${ownerRepo}/pulls?state=all&per_page=100&sort=updated&direction=desc`),
+    ]);
+
+    const issueOnly = issues.filter((issue) => !issue.pull_request);
+    const closedDurations = issueOnly
+      .filter((issue) => issue.closed_at)
+      .map((issue) => (Date.parse(issue.closed_at!) - Date.parse(issue.created_at)) / 3_600_000)
+      .sort((a, b) => a - b);
+    const medianIssueHours = closedDurations.length
+      ? closedDurations[Math.floor(closedDurations.length / 2)]
+      : 0;
+
+    const currentDate = today();
+    await Promise.all([
+      insertMetric(env, 'github', 'stars', repo.stargazers_count, currentDate, '', capturedAt),
+      insertMetric(env, 'github', 'forks', repo.forks_count, currentDate, '', capturedAt),
+      insertMetric(
+        env,
+        'github',
+        'issues_open',
+        issueOnly.filter((issue) => !issue.closed_at).length,
+        currentDate,
+        '',
+        capturedAt,
+      ),
+      insertMetric(env, 'github', 'median_issue_hours', medianIssueHours, currentDate, '', capturedAt),
+    ]);
+
+    for (const day of traffic.views ?? []) {
+      await insertMetric(
+        env,
+        'github',
+        'repository_views',
+        day.uniques,
+        day.timestamp.slice(0, 10),
+        'unique',
+        capturedAt,
+      );
+    }
+    const releaseViews = paths
+      .filter((item) => item.path.includes('/releases'))
+      .reduce((sum, item) => sum + item.uniques, 0);
+    await insertMetric(env, 'github', 'release_views', releaseViews, currentDate, 'unique', capturedAt);
+
+    const startDate = env.DASHBOARD_START_DATE;
+    const createdByDay = new Map<string, number>();
+    const closedByDay = new Map<string, number>();
+    issueOnly.forEach((issue) => {
+      const created = issue.created_at.slice(0, 10);
+      if (created >= startDate) createdByDay.set(created, (createdByDay.get(created) ?? 0) + 1);
+      const closed = issue.closed_at?.slice(0, 10);
+      if (closed && closed >= startDate) closedByDay.set(closed, (closedByDay.get(closed) ?? 0) + 1);
+    });
+    for (const [date, value] of createdByDay) {
+      await insertMetric(env, 'github', 'issues_created', value, date, '', capturedAt);
+    }
+    for (const [date, value] of closedByDay) {
+      await insertMetric(env, 'github', 'issues_closed', value, date, '', capturedAt);
+    }
+
+    const prsCreated = new Map<string, number>();
+    const prsMerged = new Map<string, number>();
+    pulls.forEach((pull) => {
+      const created = pull.created_at.slice(0, 10);
+      if (created >= startDate) prsCreated.set(created, (prsCreated.get(created) ?? 0) + 1);
+      const merged = pull.merged_at?.slice(0, 10);
+      if (merged && merged >= startDate) prsMerged.set(merged, (prsMerged.get(merged) ?? 0) + 1);
+    });
+    for (const [date, value] of prsCreated) {
+      await insertMetric(env, 'github', 'pull_requests_created', value, date, '', capturedAt);
+    }
+    for (const [date, value] of prsMerged) {
+      await insertMetric(env, 'github', 'pull_requests_merged', value, date, '', capturedAt);
+    }
+
+    for (const release of releases) {
+      for (const asset of release.assets) {
+        await env.DB.prepare(
+          `INSERT OR IGNORE INTO release_asset_snapshots
+            (asset_id, release_tag, asset_name, captured_at, period_date, download_count)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+        )
+          .bind(asset.id, release.tag_name, asset.name, capturedAt, currentDate, asset.download_count)
+          .run();
+      }
+    }
+    await recordSync(env, 'github', 'healthy');
+  } catch (error) {
+    await recordSync(env, 'github', 'error', error instanceof Error ? error.message : String(error));
+    throw error;
+  }
+}
+
+export async function syncAlternativeTo(env: Env): Promise<void> {
+  try {
+    const response = await fetch(env.ALTERNATIVETO_URL, {
+      headers: { 'User-Agent': 'Gnosi growth metrics bot (+https://gnosi.temenosismael.org)' },
+      cf: { cacheTtl: 21_600, cacheEverything: true },
+    });
+    if (!response.ok) throw new Error(`AlternativeTo returned ${response.status}`);
+    const metrics = parseAlternativeTo(await response.text());
+    const capturedAt = now();
+    await Promise.all(
+      (['likes', 'comments', 'reviews', 'rating'] as const).map((metric) =>
+        insertMetric(env, 'alternativeto', metric, metrics[metric], today(), '', capturedAt),
+      ),
+    );
+    await recordSync(env, 'alternativeto', 'healthy', '', metrics.parserVersion);
+  } catch (error) {
+    await recordSync(
+      env,
+      'alternativeto',
+      'degraded',
+      error instanceof Error ? error.message : String(error),
+      ALTERNATIVETO_PARSER_VERSION,
+    );
+    throw error;
+  }
+}
+
+function base64Url(value: Uint8Array | string): string {
+  const bytes = typeof value === 'string' ? new TextEncoder().encode(value) : value;
+  let binary = '';
+  bytes.forEach((byte) => (binary += String.fromCharCode(byte)));
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function ga4AccessToken(env: Env): Promise<string> {
+  if (!env.GA4_CLIENT_EMAIL || !env.GA4_PRIVATE_KEY) {
+    throw new Error('GA4 service account credentials are not configured');
+  }
+  const issuedAt = Math.floor(Date.now() / 1000);
+  const header = base64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const claim = base64Url(
+    JSON.stringify({
+      iss: env.GA4_CLIENT_EMAIL,
+      scope: 'https://www.googleapis.com/auth/analytics.readonly',
+      aud: 'https://oauth2.googleapis.com/token',
+      iat: issuedAt,
+      exp: issuedAt + 3600,
+    }),
+  );
+  const pem = env.GA4_PRIVATE_KEY.replace(/\\n/g, '\n')
+    .replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\s/g, '');
+  const binary = Uint8Array.from(atob(pem), (character) => character.charCodeAt(0));
+  const key = await crypto.subtle.importKey(
+    'pkcs8',
+    binary,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const unsigned = `${header}.${claim}`;
+  const signature = new Uint8Array(
+    await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(unsigned)),
+  );
+  const assertion = `${unsigned}.${base64Url(signature)}`;
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion,
+    }),
+  });
+  if (!response.ok) throw new Error(`GA4 OAuth returned ${response.status}`);
+  const payload = await response.json<{ access_token: string }>();
+  return payload.access_token;
+}
+
+export async function syncGa4(env: Env): Promise<void> {
+  try {
+    if (!env.GA4_PROPERTY_ID || env.GA4_PROPERTY_ID.startsWith('REPLACE_')) {
+      throw new Error('GA4_PROPERTY_ID is not configured');
+    }
+    const token = await ga4AccessToken(env);
+    const response = await fetch(
+      `https://analyticsdata.googleapis.com/v1beta/properties/${env.GA4_PROPERTY_ID}:runReport`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateRanges: [{ startDate: env.DASHBOARD_START_DATE, endDate: 'today' }],
+          dimensions: [{ name: 'date' }, { name: 'eventName' }],
+          metrics: [{ name: 'eventCount' }],
+          dimensionFilter: {
+            filter: {
+              fieldName: 'eventName',
+              inListFilter: {
+                values: [
+                  'github_click',
+                  'github_repo_click',
+                  'github_release_click',
+                  'github_sponsor_click',
+                ],
+              },
+            },
+          },
+          limit: 10_000,
+        }),
+      },
+    );
+    if (!response.ok) throw new Error(`GA4 Data API returned ${response.status}`);
+    const report = await response.json<{
+      rows?: Array<{
+        dimensionValues: Array<{ value: string }>;
+        metricValues: Array<{ value: string }>;
+      }>;
+    }>();
+    const metricMap: Record<string, string> = {
+      github_click: 'github_clicks',
+      github_repo_click: 'repository_clicks',
+      github_release_click: 'release_views',
+      github_sponsor_click: 'sponsor_clicks',
+    };
+    const capturedAt = now();
+    for (const row of report.rows ?? []) {
+      const rawDate = row.dimensionValues[0].value;
+      const date = `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
+      const eventName = row.dimensionValues[1].value;
+      await insertMetric(
+        env,
+        'ga4',
+        metricMap[eventName] ?? eventName,
+        Number(row.metricValues[0].value),
+        date,
+        '',
+        capturedAt,
+      );
+    }
+    await recordSync(env, 'ga4', 'healthy');
+  } catch (error) {
+    await recordSync(env, 'ga4', 'error', error instanceof Error ? error.message : String(error));
+    throw error;
+  }
+}
+
+interface SponsorshipNode {
+  createdAt: string;
+  isActive: boolean;
+  privacyLevel: string;
+  sponsorEntity: { login: string } | null;
+  tier: { monthlyPriceInCents: number } | null;
+}
+
+export async function syncSponsors(env: Env): Promise<void> {
+  try {
+    if (!env.GITHUB_TOKEN) throw new Error('GITHUB_TOKEN is not configured');
+    const response = await fetch('https://api.github.com/graphql', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'gnosi-growth-dashboard',
+      },
+      body: JSON.stringify({
+        query: `query($login: String!) {
+          user(login: $login) {
+            sponsorshipsAsMaintainer(first: 100, includePrivate: true) {
+              nodes {
+                createdAt
+                isActive
+                privacyLevel
+                sponsorEntity { ... on User { login } ... on Organization { login } }
+                tier { monthlyPriceInCents }
+              }
+            }
+          }
+        }`,
+        variables: { login: env.GITHUB_OWNER },
+      }),
+    });
+    if (!response.ok) throw new Error(`GitHub Sponsors GraphQL returned ${response.status}`);
+    const payload = await response.json<{
+      data?: { user?: { sponsorshipsAsMaintainer?: { nodes?: SponsorshipNode[] } } };
+      errors?: Array<{ message: string }>;
+    }>();
+    if (payload.errors?.length) throw new Error(payload.errors.map((error) => error.message).join('; '));
+    for (const node of payload.data?.user?.sponsorshipsAsMaintainer?.nodes ?? []) {
+      const login = node.sponsorEntity?.login ?? `private-${node.createdAt}`;
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(login));
+      const sponsorHash = Array.from(new Uint8Array(digest))
+        .map((byte) => byte.toString(16).padStart(2, '0'))
+        .join('');
+      await env.DB.prepare(
+        `INSERT INTO sponsor_events
+          (id, occurred_at, action, sponsor_hash, tier_cents, one_time_cents, is_active, source, raw_kind)
+         VALUES (?, ?, 'snapshot', ?, ?, 0, ?, 'unknown', 'graphql')
+         ON CONFLICT(id) DO UPDATE SET tier_cents = excluded.tier_cents, is_active = excluded.is_active`,
+      )
+        .bind(
+          `graphql:${sponsorHash}`,
+          node.createdAt,
+          sponsorHash,
+          node.tier?.monthlyPriceInCents ?? 0,
+          node.isActive ? 1 : 0,
+        )
+        .run();
+    }
+    await recordSync(env, 'sponsors', 'healthy');
+  } catch (error) {
+    await recordSync(env, 'sponsors', 'error', error instanceof Error ? error.message : String(error));
+    throw error;
+  }
+}
+
+export async function runScheduledSync(env: Env, daily: boolean): Promise<void> {
+  const jobs: Array<Promise<void>> = [syncGitHub(env), syncAlternativeTo(env)];
+  if (daily) jobs.push(syncGa4(env), syncSponsors(env));
+  await Promise.allSettled(jobs);
+}
