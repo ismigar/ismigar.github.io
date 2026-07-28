@@ -8,7 +8,15 @@ import {
   verifyOAuthState,
   verifyWebhookSignature,
 } from './security';
-import { runScheduledSync, syncAlternativeTo, syncGa4, syncGitHub, syncSponsors } from './sync';
+import {
+  importAlternativeToSnapshot,
+  normalizeAlternativeToSnapshot,
+  runScheduledSync,
+  syncAlternativeTo,
+  syncGa4,
+  syncGitHub,
+  syncSponsors,
+} from './sync';
 import type { Env } from './types';
 
 const JSON_HEADERS = {
@@ -349,6 +357,17 @@ async function manualSync(request: Request, env: Env): Promise<Response> {
   return json({ synced: source });
 }
 
+async function importAlternativeTo(request: Request, env: Env): Promise<Response> {
+  let snapshot;
+  try {
+    snapshot = normalizeAlternativeToSnapshot(await request.json());
+  } catch (error) {
+    return json({ error: error instanceof Error ? error.message : 'Invalid snapshot' }, 400);
+  }
+  await importAlternativeToSnapshot(env, snapshot);
+  return json({ imported: true });
+}
+
 async function handleRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   if (request.method === 'GET' && url.pathname === '/auth/login') return login(request, env);
@@ -371,6 +390,9 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   if (request.method === 'GET' && url.pathname === '/api/dashboard') return dashboard(request, env);
   if (request.method === 'POST' && url.pathname === '/api/import/sponsors') {
     return importSponsors(request, env);
+  }
+  if (request.method === 'POST' && url.pathname === '/api/import/alternativeto') {
+    return importAlternativeTo(request, env);
   }
   if (request.method === 'POST' && url.pathname === '/api/sync') return manualSync(request, env);
   return env.ASSETS.fetch(request);

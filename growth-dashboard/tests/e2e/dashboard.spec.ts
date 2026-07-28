@@ -8,6 +8,9 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/api/sync?source=github', async (route) => {
     await route.fulfill({ json: { synced: 'github' } });
   });
+  await page.route('**/api/import/alternativeto', async (route) => {
+    await route.fulfill({ json: { imported: true } });
+  });
 });
 
 test('renders the complete growth story and changes date range', async ({ page }) => {
@@ -25,6 +28,14 @@ test('runs an authenticated GitHub synchronization and refreshes the dashboard',
   await page.goto('/');
   await page.getByRole('button', { name: 'Sincronitza GitHub' }).click();
   await expect(page.getByRole('status')).toHaveText('GitHub actualitzat');
+});
+
+test('imports a manual AlternativeTo snapshot', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Actualitza les dades' }).click();
+  await page.getByLabel('Likes').fill('1');
+  await page.getByRole('button', { name: 'Desa el snapshot' }).click();
+  await expect(page.getByRole('status')).toHaveText('AlternativeTo actualitzat');
 });
 
 test('keeps the dashboard readable on a mobile viewport', async ({ page }, testInfo) => {

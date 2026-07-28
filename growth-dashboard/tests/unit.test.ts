@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { extractPlatform, parseAlternativeTo } from '../worker/alternativeto';
 import { csvRows } from '../worker/index';
 import { buildDashboard, calculateAssetDeltas } from '../worker/metrics';
+import { normalizeAlternativeToSnapshot } from '../worker/sync';
 import {
   createOAuthStateCookie,
   createSessionCookie,
@@ -32,6 +33,18 @@ describe('AlternativeTo parser', () => {
     expect(() => parseAlternativeTo('<html>Unrelated page</html>')).toThrow(
       'product markers',
     );
+  });
+
+  it('normalizes a manual snapshot and rejects invalid counters', () => {
+    expect(
+      normalizeAlternativeToSnapshot({ likes: 1, comments: 0, reviews: 0, rating: 0 }),
+    ).toEqual({ likes: 1, comments: 0, reviews: 0, rating: 0 });
+    expect(() =>
+      normalizeAlternativeToSnapshot({ likes: -1, comments: 0, reviews: 0, rating: 0 }),
+    ).toThrow('Invalid AlternativeTo likes');
+    expect(() =>
+      normalizeAlternativeToSnapshot({ likes: 1, comments: 0, reviews: 0, rating: 6 }),
+    ).toThrow('Invalid AlternativeTo rating');
   });
 });
 

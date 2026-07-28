@@ -2,6 +2,14 @@ import { ALTERNATIVETO_PARSER_VERSION, parseAlternativeTo } from './alternativet
 import type { Env } from './types';
 
 const GITHUB_API_VERSION = '2026-03-10';
+const ALTERNATIVETO_MANUAL_VERSION = 'manual-v1';
+
+export interface ManualAlternativeToSnapshot {
+  likes: number;
+  comments: number;
+  reviews: number;
+  rating: number;
+}
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -49,6 +57,59 @@ async function insertMetric(
   )
     .bind(source, metric, dimension, capturedAt, periodDate, value)
     .run();
+}
+
+export function normalizeAlternativeToSnapshot(input: unknown): ManualAlternativeToSnapshot {
+  if (!input || typeof input !== 'object') {
+    throw new Error('AlternativeTo snapshot must be an object');
+  }
+  const record = input as Record<string, unknown>;
+  const limits: Record<keyof ManualAlternativeToSnapshot, number> = {
+    likes: 1_000_000,
+    comments: 1_000_000,
+    reviews: 1_000_000,
+    rating: 5,
+  };
+  const result = {} as ManualAlternativeToSnapshot;
+  for (const key of Object.keys(limits) as Array<keyof ManualAlternativeToSnapshot>) {
+    const value = Number(record[key]);
+    if (!Number.isFinite(value) || value < 0 || value > limits[key]) {
+      throw new Error(`Invalid AlternativeTo ${key}`);
+    }
+    if (key !== 'rating' && !Number.isInteger(value)) {
+      throw new Error(`Invalid AlternativeTo ${key}`);
+    }
+    result[key] = value;
+  }
+  return result;
+}
+
+export async function importAlternativeToSnapshot(
+  env: Env,
+  snapshot: ManualAlternativeToSnapshot,
+): Promise<void> {
+  const periodDate = today();
+  const capturedAt = `${periodDate}T23:59:59.999Z`;
+  await Promise.all(
+    (Object.keys(snapshot) as Array<keyof ManualAlternativeToSnapshot>).map((metric) =>
+      env.DB.prepare(
+        `INSERT INTO metric_snapshots
+          (source, metric, dimension, captured_at, period_date, value)
+         VALUES ('alternativeto', ?, 'manual', ?, ?, ?)
+         ON CONFLICT(source, metric, dimension, captured_at, period_date)
+         DO UPDATE SET value = excluded.value`,
+      )
+        .bind(metric, capturedAt, periodDate, snapshot[metric])
+        .run(),
+    ),
+  );
+  await recordSync(
+    env,
+    'alternativeto',
+    'healthy',
+    'Manual snapshot imported; automated fetch remains blocked',
+    ALTERNATIVETO_MANUAL_VERSION,
+  );
 }
 
 async function githubFetch<T>(env: Env, path: string): Promise<T> {
@@ -305,11 +366,20 @@ export async function syncAlternativeTo(env: Env): Promise<void> {
     );
     await recordSync(env, 'alternativeto', 'healthy', '', metrics.parserVersion);
   } catch (error) {
+    const manualSnapshot = await env.DB.prepare(
+      `SELECT 1 AS available
+       FROM metric_snapshots
+       WHERE source = 'alternativeto' AND dimension = 'manual'
+       LIMIT 1`,
+    ).first();
+    const errorMessage = error instanceof Error ? error.message : String(error);
     await recordSync(
       env,
       'alternativeto',
       'degraded',
-      error instanceof Error ? error.message : String(error),
+      manualSnapshot
+        ? `${errorMessage}; latest manual snapshot retained`
+        : errorMessage,
       ALTERNATIVETO_PARSER_VERSION,
     );
     throw error;

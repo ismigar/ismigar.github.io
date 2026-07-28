@@ -288,6 +288,30 @@ h1 { font-size: clamp(31px, 4vw, 52px); line-height: 1.08; letter-spacing: -.045
 .alt-metrics div { display: grid; text-align: center; }
 .alt-metrics strong { font-size: 17px; }
 .alt-metrics span { color: var(--muted); font-size: 8px; }
+.alt-import { display: grid; justify-items: end; gap: 10px; margin-top: 14px; }
+.alt-import form { width: 100%; display: grid; gap: 12px; }
+.alt-import-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.alt-import-grid label { display: grid; gap: 4px; color: var(--muted); font-size: 8px; text-transform: uppercase; letter-spacing: .08em; }
+.alt-import-grid input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 8px;
+  background: rgba(255,255,255,.035);
+  color: #f8fafc;
+}
+.import-submit {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 11px;
+  background: var(--mint-strong);
+  color: #eff6ff;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+.import-submit:disabled { cursor: wait; opacity: .65; }
+.alt-import-message { color: #9fb0c9; font-size: 9px; }
 .alternative-panel > a { display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 16px; color: var(--mint); font-size: 10px; text-decoration: none; }
 .alternative-panel > a .icon { width: 13px; }
 
