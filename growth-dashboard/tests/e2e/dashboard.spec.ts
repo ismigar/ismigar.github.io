@@ -5,6 +5,9 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/api/dashboard?**', async (route) => {
     await route.fulfill({ json: demoData });
   });
+  await page.route('**/api/sync?source=github', async (route) => {
+    await route.fulfill({ json: { synced: 'github' } });
+  });
 });
 
 test('renders the complete growth story and changes date range', async ({ page }) => {
@@ -16,6 +19,12 @@ test('renders the complete growth story and changes date range', async ({ page }
   await expect(page.getByRole('heading', { name: 'Patrocinis' })).toBeVisible();
   await page.getByRole('button', { name: '7 dies' }).click();
   await expect(page.getByRole('button', { name: '7 dies' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('runs an authenticated GitHub synchronization and refreshes the dashboard', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Sincronitza GitHub' }).click();
+  await expect(page.getByRole('status')).toHaveText('GitHub actualitzat');
 });
 
 test('keeps the dashboard readable on a mobile viewport', async ({ page }, testInfo) => {

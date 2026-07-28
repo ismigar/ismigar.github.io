@@ -291,21 +291,46 @@ function sourceStatusLabel(source: DashboardData['sources'][number]): string {
   );
 }
 
-function SourceHealth({ data }: { data: DashboardData }) {
+function SourceHealth({
+  data,
+  onSyncGitHub,
+  syncing,
+  syncMessage,
+}: {
+  data: DashboardData;
+  onSyncGitHub: () => void;
+  syncing: boolean;
+  syncMessage: string;
+}) {
   return (
     <section className="source-strip" aria-label="Qualitat de les fonts">
       <div className="source-title">
         <span className="live-dot" />
         <strong>Qualitat de dades</strong>
       </div>
-      <div className="sources">
-        {data.sources.map((source) => (
-          <div className="source" key={source.id} title={source.message || 'Font actualitzada'}>
-            <span className={`status-dot ${source.status}`} />
-            <span>{source.label}</span>
-            <small>{sourceStatusLabel(source)}</small>
-          </div>
-        ))}
+      <div className="source-actions">
+        <div className="sources">
+          {data.sources.map((source) => (
+            <div className="source" key={source.id} title={source.message || 'Font actualitzada'}>
+              <span className={`status-dot ${source.status}`} />
+              <span>{source.label}</span>
+              <small>{sourceStatusLabel(source)}</small>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="sync-button"
+          disabled={syncing}
+          onClick={onSyncGitHub}
+        >
+          {syncing ? 'Sincronitzant…' : 'Sincronitza GitHub'}
+        </button>
+        {syncMessage && (
+          <span className="sync-message" role="status">
+            {syncMessage}
+          </span>
+        )}
       </div>
     </section>
   );
@@ -317,6 +342,8 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [demo, setDemo] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -349,6 +376,37 @@ export default function App() {
       });
     return () => controller.abort();
   }, [range]);
+
+  async function syncGitHubNow(): Promise<void> {
+    const selectedRange = dateRange(range);
+    setSyncing(true);
+    setSyncMessage('');
+    try {
+      const syncResponse = await fetch('/api/sync?source=github', {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+      });
+      if (!syncResponse.ok) {
+        throw new Error(`No s’ha pogut sincronitzar GitHub (${syncResponse.status}).`);
+      }
+      const dashboardResponse = await fetch(
+        `/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`,
+        { headers: { Accept: 'application/json' } },
+      );
+      if (!dashboardResponse.ok) {
+        throw new Error(`GitHub s’ha sincronitzat, però no s’han pogut recarregar les dades.`);
+      }
+      setData((await dashboardResponse.json()) as DashboardData);
+      setDemo(false);
+      setSyncMessage('GitHub actualitzat');
+    } catch (reason: unknown) {
+      setSyncMessage(
+        reason instanceof Error ? reason.message : 'No s’ha pogut sincronitzar GitHub.',
+      );
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   const totalCommunity = useMemo(
     () => (data ? data.community.issuesClosed + data.community.pullRequestsMerged : 0),
@@ -423,7 +481,12 @@ export default function App() {
           </div>
         </section>
 
-        <SourceHealth data={data} />
+        <SourceHealth
+          data={data}
+          onSyncGitHub={() => void syncGitHubNow()}
+          syncing={syncing}
+          syncMessage={syncMessage}
+        />
 
         <div className="primary-grid">
           <Funnel data={data} />

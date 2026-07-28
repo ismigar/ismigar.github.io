@@ -42,6 +42,12 @@ function sumMetric(rows: SnapshotRow[], metric: string): number {
   return rows.filter((row) => row.metric === metric).reduce((sum, row) => sum + row.value, 0);
 }
 
+function sumMetricDimension(rows: SnapshotRow[], metric: string, dimension: string): number {
+  return rows
+    .filter((row) => row.metric === metric && row.dimension === dimension)
+    .reduce((sum, row) => sum + row.value, 0);
+}
+
 function latestMetric(rows: SnapshotRow[], metric: string): number {
   const matching = rows.filter((row) => row.metric === metric);
   return matching.length ? matching.at(-1)!.value : 0;
@@ -87,8 +93,8 @@ export function buildDashboard(
     return {
       date,
       redirects: redirectsByDate.get(date) ?? 0,
-      repositoryViews: sumMetric(dayRows, 'repository_views'),
-      releaseViews: sumMetric(dayRows, 'release_views'),
+      repositoryViews: sumMetricDimension(dayRows, 'repository_views', 'total'),
+      releaseViews: latestMetric(dayRows, 'release_views_14d'),
       downloads: currentAssets.filter((row) => row.period_date === date).reduce((sum, row) => sum + row.delta, 0),
       stars: latestMetric(dayRows, 'stars'),
       issues: sumMetric(dayRows, 'issues_created'),
@@ -98,8 +104,8 @@ export function buildDashboard(
   });
 
   const redirects = [...redirectsByDate.values()].reduce((sum, value) => sum + value, 0);
-  const repositoryViews = sumMetric(currentRows, 'repository_views');
-  const releaseViews = sumMetric(currentRows, 'release_views');
+  const repositoryViews = sumMetricDimension(currentRows, 'repository_views', 'total');
+  const releaseViews = latestMetric(currentRows, 'release_views_14d');
   const githubSync = syncRows.find((row) => String(row.source) === 'github');
   const trafficAvailable = !String(githubSync?.message ?? '').includes('required for traffic');
   const funnelValues = [
@@ -114,7 +120,7 @@ export function buildDashboard(
       id: 'releases',
       label: 'Visites a releases',
       value: trafficAvailable ? releaseViews : null,
-      detail: trafficAvailable ? undefined : 'Dada no disponible',
+      detail: trafficAvailable ? 'Finestra mòbil de 14 dies' : 'Dada no disponible',
     },
     {
       id: 'downloads',
@@ -175,8 +181,11 @@ export function buildDashboard(
     timeline,
     comparison: {
       redirects: safePercent(redirects, sumMetric(previousRows, 'alternativeto_redirects')),
-      repositoryViews: safePercent(repositoryViews, sumMetric(previousRows, 'repository_views')),
-      releaseViews: safePercent(releaseViews, sumMetric(previousRows, 'release_views')),
+      repositoryViews: safePercent(
+        repositoryViews,
+        sumMetricDimension(previousRows, 'repository_views', 'total'),
+      ),
+      releaseViews: safePercent(releaseViews, latestMetric(previousRows, 'release_views_14d')),
       downloads: safePercent(currentDownloads, previousDownloads),
     },
     downloads: {

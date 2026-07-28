@@ -150,20 +150,53 @@ export async function syncGitHub(env: Env): Promise<void> {
     ]);
 
     for (const day of traffic.views ?? []) {
-      await insertMetric(
-        env,
-        'github',
-        'repository_views',
-        day.uniques,
-        day.timestamp.slice(0, 10),
-        'unique',
-        capturedAt,
-      );
+      await Promise.all([
+        insertMetric(
+          env,
+          'github',
+          'repository_views',
+          day.count,
+          day.timestamp.slice(0, 10),
+          'total',
+          capturedAt,
+        ),
+        insertMetric(
+          env,
+          'github',
+          'repository_unique_visitors',
+          day.uniques,
+          day.timestamp.slice(0, 10),
+          'unique',
+          capturedAt,
+        ),
+      ]);
     }
     const releaseViews = paths
       .filter((item) => item.path.includes('/releases'))
+      .reduce((sum, item) => sum + item.count, 0);
+    const releaseUniqueVisitors = paths
+      .filter((item) => item.path.includes('/releases'))
       .reduce((sum, item) => sum + item.uniques, 0);
-    await insertMetric(env, 'github', 'release_views', releaseViews, currentDate, 'unique', capturedAt);
+    await Promise.all([
+      insertMetric(
+        env,
+        'github',
+        'release_views_14d',
+        releaseViews,
+        currentDate,
+        'total',
+        capturedAt,
+      ),
+      insertMetric(
+        env,
+        'github',
+        'release_unique_visitors_14d',
+        releaseUniqueVisitors,
+        currentDate,
+        'unique',
+        capturedAt,
+      ),
+    ]);
 
     const startDate = env.DASHBOARD_START_DATE;
     const createdByDay = new Map<string, number>();

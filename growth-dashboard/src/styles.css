@@ -48,7 +48,7 @@ a { color: inherit; }
   border-bottom: 1px solid var(--border);
 }
 
-.brand, .top-actions, .range-switch, .source, .section-heading, .hero-heading,
+.brand, .top-actions, .range-switch, .source, .source-actions, .section-heading, .hero-heading,
 .funnel-meta, .funnel-note, .branch-intro, .sponsor-flow, .attribution, footer {
   display: flex;
   align-items: center;
@@ -158,6 +158,7 @@ h1 { font-size: clamp(31px, 4vw, 52px); line-height: 1.08; letter-spacing: -.045
 }
 .source-title { display: flex; align-items: center; gap: 9px; font-size: 12px; }
 .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 5px rgba(59,130,246,.1); }
+.source-actions { justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
 .sources { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 20px; }
 .source { gap: 7px; color: #cbd5e1; font-size: 11px; }
 .source small { color: #64748b; }
@@ -165,6 +166,19 @@ h1 { font-size: clamp(31px, 4vw, 52px); line-height: 1.08; letter-spacing: -.045
 .status-dot.healthy { background: var(--mint); }
 .status-dot.degraded { background: var(--amber); }
 .status-dot.error { background: var(--coral); }
+.sync-button {
+  border: 1px solid rgba(96, 165, 250, .28);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: rgba(59, 130, 246, .1);
+  color: var(--mint);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+.sync-button:hover:not(:disabled) { background: rgba(59, 130, 246, .18); }
+.sync-button:disabled { cursor: wait; opacity: .65; }
+.sync-message { color: #9fb0c9; font-size: 9px; }
 
 .panel {
   background: linear-gradient(145deg, rgba(17, 28, 50, .9), rgba(9, 15, 29, .92));
@@ -302,6 +316,7 @@ footer { justify-content: space-between; padding: 22px 0 28px; color: #52647f; f
   .hero-heading { align-items: flex-start; }
   .hero-stat { min-width: 150px; }
   .source-strip { align-items: flex-start; }
+  .source-actions { align-items: flex-end; }
   .sources { gap: 10px 16px; }
   .source small { display: none; }
   .timeline-heading { display: grid; }
@@ -319,6 +334,7 @@ footer { justify-content: space-between; padding: 22px 0 28px; color: #52647f; f
   .hero-heading { display: grid; }
   .hero-stat { border-left: 0; border-top: 1px solid var(--border); padding: 16px 0 0; width: 100%; }
   .source-strip { display: grid; }
+  .source-actions { align-items: flex-start; justify-content: flex-start; }
   .sources { justify-content: flex-start; }
   .funnel-panel, .timeline-panel, .outcome-panel, .downloads-panel, .alternative-panel { padding: 19px; }
   .funnel-meta span:nth-child(2) { max-width: 170px; }
