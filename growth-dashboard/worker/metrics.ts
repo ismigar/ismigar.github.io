@@ -62,6 +62,17 @@ export function buildDashboard(
   const assetDeltas = calculateAssetDeltas(assets);
   const currentAssets = assetDeltas.filter((row) => row.period_date >= from && row.period_date <= to);
   const currentDownloads = currentAssets.reduce((sum, row) => sum + row.delta, 0);
+  const latestAssetsById = new Map<number, AssetRow>();
+  assets.forEach((row) => {
+    const current = latestAssetsById.get(row.asset_id);
+    if (!current || row.captured_at > current.captured_at) latestAssetsById.set(row.asset_id, row);
+  });
+  const latestAssets = [...latestAssetsById.values()];
+  const lifetimeDownloads = latestAssets.reduce((sum, row) => sum + row.download_count, 0);
+  const installerPattern = /\.(?:dmg|exe|msi|deb|appimage)$/i;
+  const installerDownloads = latestAssets
+    .filter((row) => installerPattern.test(row.asset_name))
+    .reduce((sum, row) => sum + row.download_count, 0);
   const previousDownloads = assetDeltas
     .filter((row) => row.period_date >= previousFrom && row.period_date <= previousTo)
     .reduce((sum, row) => sum + row.delta, 0);
@@ -103,9 +114,11 @@ export function buildDashboard(
         : Math.round((item.value / funnelValues[index - 1].value) * 1000) / 10,
   }));
 
-  const groupAssets = (key: (row: (typeof currentAssets)[number]) => string) => {
+  const groupAssets = (key: (row: AssetRow) => string) => {
     const totals = new Map<string, number>();
-    currentAssets.forEach((row) => totals.set(key(row), (totals.get(key(row)) ?? 0) + row.delta));
+    latestAssets.forEach((row) =>
+      totals.set(key(row), (totals.get(key(row)) ?? 0) + row.download_count),
+    );
     return [...totals]
       .map(([label, value]) => ({ label, value }))
       .filter((item) => item.value > 0)
@@ -145,7 +158,10 @@ export function buildDashboard(
       downloads: safePercent(currentDownloads, previousDownloads),
     },
     downloads: {
-      total: currentDownloads,
+      total: lifetimeDownloads,
+      newInPeriod: currentDownloads,
+      installers: installerDownloads,
+      extensions: lifetimeDownloads - installerDownloads,
       byVersion: groupAssets((row) => row.release_tag),
       byPlatform: groupAssets((row) => extractPlatform(row.asset_name)),
       byAsset: groupAssets((row) => row.asset_name),

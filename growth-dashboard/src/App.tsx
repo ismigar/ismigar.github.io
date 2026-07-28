@@ -407,9 +407,9 @@ export default function App() {
             <p>Una lectura honesta de com Gnosi atrau, converteix i crea relacions.</p>
           </div>
           <div className="hero-stat">
-            <span>Descàrregues</span>
+            <span>Descàrregues acumulades</span>
             <strong>{formatNumber(data.downloads.total)}</strong>
-            <Delta value={data.comparison.downloads ?? 0} />
+            <small>+{formatNumber(data.downloads.newInPeriod)} durant el període</small>
           </div>
         </section>
 
@@ -485,6 +485,7 @@ export default function App() {
               <div>
                 <span className="eyebrow">Distribució</span>
                 <h2>Què es descarrega?</h2>
+                <p>{formatNumber(data.downloads.installers)} instal·ladors · {formatNumber(data.downloads.extensions)} extensions i artefactes</p>
               </div>
               <div className="round-icon"><Icon name="download" /></div>
             </div>

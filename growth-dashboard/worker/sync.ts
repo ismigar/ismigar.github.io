@@ -52,14 +52,14 @@ async function insertMetric(
 }
 
 async function githubFetch<T>(env: Env, path: string): Promise<T> {
-  if (!env.GITHUB_TOKEN) throw new Error('GITHUB_TOKEN is not configured');
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'gnosi-growth-dashboard',
+    'X-GitHub-Api-Version': GITHUB_API_VERSION,
+  };
+  if (env.GITHUB_TOKEN) headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`;
   const response = await fetch(`https://api.github.com${path}`, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-      'User-Agent': 'gnosi-growth-dashboard',
-      'X-GitHub-Api-Version': GITHUB_API_VERSION,
-    },
+    headers,
   });
   if (!response.ok) {
     throw new Error(`GitHub ${response.status}: ${await response.text()}`);
@@ -103,14 +103,26 @@ export async function syncGitHub(env: Env): Promise<void> {
   const capturedAt = now();
   try {
     const ownerRepo = `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}`;
-    const [repo, traffic, paths, releases, issues, pulls] = await Promise.all([
+    const [repo, releases, issues, pulls] = await Promise.all([
       githubFetch<GitHubRepo>(env, ownerRepo),
-      githubFetch<GitHubTraffic>(env, `${ownerRepo}/traffic/views?per=day`),
-      githubFetch<GitHubPath[]>(env, `${ownerRepo}/traffic/popular/paths`),
       githubFetch<GitHubRelease[]>(env, `${ownerRepo}/releases?per_page=100`),
       githubFetch<GitHubIssue[]>(env, `${ownerRepo}/issues?state=all&per_page=100&sort=updated&direction=desc`),
       githubFetch<GitHubPull[]>(env, `${ownerRepo}/pulls?state=all&per_page=100&sort=updated&direction=desc`),
     ]);
+    let traffic: GitHubTraffic = {};
+    let paths: GitHubPath[] = [];
+    let trafficAvailable = false;
+    if (env.GITHUB_TOKEN) {
+      try {
+        [traffic, paths] = await Promise.all([
+          githubFetch<GitHubTraffic>(env, `${ownerRepo}/traffic/views?per=day`),
+          githubFetch<GitHubPath[]>(env, `${ownerRepo}/traffic/popular/paths`),
+        ]);
+        trafficAvailable = true;
+      } catch {
+        // Public repository metrics remain useful when the traffic permission is unavailable.
+      }
+    }
 
     const issueOnly = issues.filter((issue) => !issue.pull_request);
     const closedDurations = issueOnly
@@ -195,7 +207,12 @@ export async function syncGitHub(env: Env): Promise<void> {
           .run();
       }
     }
-    await recordSync(env, 'github', 'healthy');
+    await recordSync(
+      env,
+      'github',
+      trafficAvailable ? 'healthy' : 'degraded',
+      trafficAvailable ? '' : 'Public metrics synced; GITHUB_TOKEN is required for traffic',
+    );
   } catch (error) {
     await recordSync(env, 'github', 'error', error instanceof Error ? error.message : String(error));
     throw error;

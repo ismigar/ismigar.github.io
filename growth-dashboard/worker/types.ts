@@ -43,6 +43,9 @@ export interface DashboardResponse {
   comparison: Record<string, number>;
   downloads: {
     total: number;
+    newInPeriod: number;
+    installers: number;
+    extensions: number;
     byVersion: Array<{ label: string; value: number }>;
     byPlatform: Array<{ label: string; value: number }>;
     byAsset: Array<{ label: string; value: number }>;
