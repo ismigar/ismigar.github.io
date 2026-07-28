@@ -278,6 +278,19 @@ function EmptyState({ label, compact = false }: { label: string; compact?: boole
   return <div className={compact ? 'empty compact' : 'empty'}>{label}</div>;
 }
 
+function sourceStatusLabel(source: DashboardData['sources'][number]): string {
+  if (source.status === 'degraded') {
+    return source.id === 'alternativeto' && source.message.includes('403')
+      ? 'bloquejat'
+      : 'parcial';
+  }
+  if (source.status === 'error') return 'error';
+  if (!source.lastSuccessAt) return 'pendent';
+  return new Intl.DateTimeFormat('ca-ES', { hour: '2-digit', minute: '2-digit' }).format(
+    new Date(source.lastSuccessAt),
+  );
+}
+
 function SourceHealth({ data }: { data: DashboardData }) {
   return (
     <section className="source-strip" aria-label="Qualitat de les fonts">
@@ -290,13 +303,7 @@ function SourceHealth({ data }: { data: DashboardData }) {
           <div className="source" key={source.id} title={source.message || 'Font actualitzada'}>
             <span className={`status-dot ${source.status}`} />
             <span>{source.label}</span>
-            <small>
-              {source.lastSuccessAt
-                ? new Intl.DateTimeFormat('ca-ES', { hour: '2-digit', minute: '2-digit' }).format(
-                    new Date(source.lastSuccessAt),
-                  )
-                : 'pendent'}
-            </small>
+            <small>{sourceStatusLabel(source)}</small>
           </div>
         ))}
       </div>
