@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gnosi-growth-dashboard",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-07-24",
+  "workers_dev": true,
+  "preview_urls": true,
+  "limits": {
+    "cpu_ms": 10
+  },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/go/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "gnosi-growth",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": ["0 */6 * * *", "15 2 * * *"]
+  },
+  "vars": {
+    "GITHUB_OWNER": "ismigar",
+    "GITHUB_REPO": "Gnosi",
+    "ALTERNATIVETO_URL": "https://alternativeto.net/software/gnosi--your-digital-second-brain-/about/",
+    "DASHBOARD_START_DATE": "2026-07-02",
+    "GA4_PROPERTY_ID": "REPLACE_WITH_GA4_PROPERTY_ID"
+  }
+}
