@@ -1,0 +1,30 @@
+{
+  "name": "gnosi-growth-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && WRANGLER_LOG_PATH=.wrangler/wrangler.log wrangler deploy --dry-run --outdir dist-worker",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "db:migrate:local": "wrangler d1 migrations apply gnosi-growth --local",
+    "deploy": "npm run build && wrangler d1 migrations apply gnosi-growth --remote && wrangler deploy"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^7.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260728.1",
+    "@playwright/test": "^1.54.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.26.0"
+  }
+}
