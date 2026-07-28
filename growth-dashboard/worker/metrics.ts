@@ -100,18 +100,40 @@ export function buildDashboard(
   const redirects = [...redirectsByDate.values()].reduce((sum, value) => sum + value, 0);
   const repositoryViews = sumMetric(currentRows, 'repository_views');
   const releaseViews = sumMetric(currentRows, 'release_views');
+  const githubSync = syncRows.find((row) => String(row.source) === 'github');
+  const trafficAvailable = !String(githubSync?.message ?? '').includes('required for traffic');
   const funnelValues = [
     { id: 'alternativeto', label: 'Clics des d’AlternativeTo', value: redirects },
-    { id: 'repository', label: 'Visites a GitHub', value: repositoryViews },
-    { id: 'releases', label: 'Visites a releases', value: releaseViews },
-    { id: 'downloads', label: 'Descàrregues confirmades', value: currentDownloads },
+    {
+      id: 'repository',
+      label: 'Visites a GitHub',
+      value: trafficAvailable ? repositoryViews : null,
+      detail: trafficAvailable ? undefined : 'Cal un token de trànsit',
+    },
+    {
+      id: 'releases',
+      label: 'Visites a releases',
+      value: trafficAvailable ? releaseViews : null,
+      detail: trafficAvailable ? undefined : 'Dada no disponible',
+    },
+    {
+      id: 'downloads',
+      label: 'Noves descàrregues confirmades',
+      value: currentDownloads,
+      detail: lifetimeDownloads
+        ? `${lifetimeDownloads} acumulades abans o durant el seguiment`
+        : undefined,
+    },
   ];
   const funnel = funnelValues.map((item, index) => ({
     ...item,
     conversion:
-      index === 0 || funnelValues[index - 1].value <= 0
+      index === 0 ||
+      item.value === null ||
+      funnelValues[index - 1].value === null ||
+      funnelValues[index - 1].value! <= 0
         ? null
-        : Math.round((item.value / funnelValues[index - 1].value) * 1000) / 10,
+        : Math.round((item.value / funnelValues[index - 1].value!) * 1000) / 10,
   }));
 
   const groupAssets = (key: (row: AssetRow) => string) => {

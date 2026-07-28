@@ -182,6 +182,7 @@ h1 { font-size: clamp(31px, 4vw, 52px); line-height: 1.08; letter-spacing: -.045
 .funnel-row { position: relative; }
 .funnel-meta { gap: 10px; min-height: 28px; font-size: 11px; color: #bdd0ca; }
 .funnel-meta strong { margin-left: auto; color: #fff; font-family: Manrope, sans-serif; font-size: 16px; }
+.step-detail { display: block; margin-top: 2px; color: #78958c; font-size: 9px; }
 .step-number { color: #5c756d; font-size: 9px; }
 .funnel-track { width: calc(100% - 70px); height: 26px; overflow: hidden; border-radius: 5px; }
 .funnel-fill { height: 100%; clip-path: polygon(0 0, 100% 0, calc(100% - 13px) 100%, 13px 100%); }

@@ -38,7 +38,13 @@ export interface MetricPoint {
 
 export interface DashboardResponse {
   range: { from: string; to: string; previousFrom: string; previousTo: string };
-  funnel: Array<{ id: string; label: string; value: number; conversion: number | null }>;
+  funnel: Array<{
+    id: string;
+    label: string;
+    value: number | null;
+    conversion: number | null;
+    detail?: string;
+  }>;
   timeline: MetricPoint[];
   comparison: Record<string, number>;
   downloads: {

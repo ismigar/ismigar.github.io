@@ -66,7 +66,7 @@ function Delta({ value }: { value: number }) {
 }
 
 function Funnel({ data }: { data: DashboardData }) {
-  const max = Math.max(...data.funnel.map((step) => step.value), 1);
+  const max = Math.max(...data.funnel.map((step) => step.value ?? 0), 1);
   return (
     <section className="panel funnel-panel" aria-labelledby="funnel-title">
       <div className="section-heading">
@@ -78,13 +78,16 @@ function Funnel({ data }: { data: DashboardData }) {
       </div>
       <div className="funnel" role="list" aria-label="Embut de conversió">
         {data.funnel.map((step, index) => {
-          const width = 52 + (step.value / max) * 48;
+          const width = step.value === null ? 52 : 52 + (step.value / max) * 48;
           return (
             <div className="funnel-row" role="listitem" key={step.id}>
               <div className="funnel-meta">
                 <span className="step-number">0{index + 1}</span>
-                <span>{step.label}</span>
-                <strong>{formatNumber(step.value)}</strong>
+                <span>
+                  {step.label}
+                  {step.detail && <small className="step-detail">{step.detail}</small>}
+                </span>
+                <strong>{step.value === null ? 'N/D' : formatNumber(step.value)}</strong>
               </div>
               <div className="funnel-track">
                 <div
@@ -106,7 +109,7 @@ function Funnel({ data }: { data: DashboardData }) {
       <div className="funnel-note">
         <Icon name="spark" />
         <span>
-          El redirect mesura la intenció. GitHub confirma la descàrrega amb el canvi del comptador de l’artefacte.
+          Les 49 descàrregues prèvies formen la línia base. L’embut només atribueix com a noves els increments observats després de començar el seguiment.
         </span>
       </div>
     </section>

@@ -1,8 +1,9 @@
 export interface FunnelStep {
   id: string;
   label: string;
-  value: number;
+  value: number | null;
   conversion: number | null;
+  detail?: string;
 }
 
 export interface TimelinePoint {
