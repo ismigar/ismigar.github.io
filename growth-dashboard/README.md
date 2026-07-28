@@ -4,6 +4,9 @@ Private growth intelligence for the Gnosi project. The dashboard separates the
 acquisition funnel from community and sponsorship outcomes, stores historical
 snapshots in D1, and runs entirely on Cloudflare's free tier.
 
+Current Worker URL:
+`https://gnosi-growth-dashboard.gnosi-ismigar.workers.dev`
+
 ## Local development
 
 1. Install dependencies with `npm install`.
@@ -35,6 +38,10 @@ snapshots in D1, and runs entirely on Cloudflare's free tier.
 8. Keep `/api/*` and the dashboard behind Access. The Worker performs an
    additional email check for all administrative API routes.
 9. Add the custom domain after the first successful Worker deployment.
+
+`growth.gnosi.temenosismael.org` can only be attached after
+`temenosismael.org` is added to the same Cloudflare account and its DNS is
+proxied by Cloudflare. Until then, use the free `workers.dev` URL above.
 
 The AlternativeTo listing should link to one of:
 
