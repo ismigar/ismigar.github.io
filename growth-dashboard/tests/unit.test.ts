@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { extractPlatform, parseAlternativeTo } from '../worker/alternativeto';
-import { csvRows } from '../worker/index';
+import worker, { csvRows } from '../worker/index';
 import { buildDashboard, calculateAssetDeltas } from '../worker/metrics';
 import { normalizeAlternativeToSnapshot } from '../worker/sync';
 import {
   createOAuthStateCookie,
   createSessionCookie,
+  createSessionToken,
   readSession,
   verifyOAuthState,
   verifyWebhookSignature,
@@ -158,6 +159,66 @@ describe('dashboard authentication', () => {
     });
     await expect(readSession(tampered, secret, 1_000_001)).resolves.toBeNull();
     await expect(readSession(request, secret, 1_000_000 + 8 * 60 * 60 * 1000)).resolves.toBeNull();
+  });
+
+  it('accepts a signed bearer session for the GitHub Pages shell', async () => {
+    const secret = 'session-secret-with-enough-entropy';
+    const token = await createSessionToken('ismigar', 42, secret, 1_000_000);
+    const request = new Request('https://growth.example.test/api/dashboard', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    await expect(readSession(request, secret, 1_000_001)).resolves.toMatchObject({
+      login: 'ismigar',
+      id: 42,
+    });
+  });
+
+  it('allows only the configured public dashboard origin through CORS', async () => {
+    const env = {
+      DASHBOARD_PUBLIC_URL: 'https://gnosi.temenosismael.org/dashboard/',
+    } as never;
+    const allowed = await worker.fetch(
+      new Request('https://growth.example.test/api/dashboard', {
+        method: 'OPTIONS',
+        headers: { Origin: 'https://gnosi.temenosismael.org' },
+      }),
+      env,
+    );
+    expect(allowed.status).toBe(204);
+    expect(allowed.headers.get('Access-Control-Allow-Origin')).toBe(
+      'https://gnosi.temenosismael.org',
+    );
+
+    const denied = await worker.fetch(
+      new Request('https://growth.example.test/api/dashboard', {
+        method: 'OPTIONS',
+        headers: { Origin: 'https://example.com' },
+      }),
+      env,
+    );
+    expect(denied.headers.get('Access-Control-Allow-Origin')).toBeNull();
+  });
+
+  it('binds the public dashboard return target into signed OAuth state', async () => {
+    const dashboardUrl = 'https://gnosi.temenosismael.org/dashboard/';
+    const response = await worker.fetch(
+      new Request(
+        `https://growth.example.test/auth/login?return_to=${encodeURIComponent(dashboardUrl)}`,
+      ),
+      {
+        GITHUB_OAUTH_CLIENT_ID: 'client-id',
+        GITHUB_OAUTH_CLIENT_SECRET: 'client-secret',
+        GITHUB_ALLOWED_LOGIN: 'ismigar',
+        SESSION_SECRET: 'session-secret-with-enough-entropy',
+        DASHBOARD_PUBLIC_URL: dashboardUrl,
+      } as never,
+    );
+    const location = new URL(response.headers.get('Location')!);
+    expect(location.hostname).toBe('github.com');
+    expect(location.searchParams.get('state')).toMatch(/_public$/);
+    expect(location.searchParams.get('redirect_uri')).toBe(
+      'https://growth.example.test/auth/callback',
+    );
   });
 
   it('binds the OAuth callback state to a signed short-lived cookie', async () => {

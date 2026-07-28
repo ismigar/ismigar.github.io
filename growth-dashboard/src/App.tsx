@@ -5,6 +5,50 @@ import type { DashboardData, TimelinePoint } from './types';
 type RangeKey = '7' | '30' | '90' | 'all';
 type TimelineMetric = 'redirects' | 'repositoryViews' | 'releaseViews' | 'downloads';
 
+const API_ORIGIN = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '');
+const SESSION_STORAGE_KEY = 'gnosi_growth_session';
+
+function captureStaticSession(): string {
+  if (!API_ORIGIN) return '';
+  try {
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    const receivedToken = fragment.get('session');
+    if (receivedToken) {
+      window.sessionStorage.setItem(SESSION_STORAGE_KEY, receivedToken);
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    }
+    return window.sessionStorage.getItem(SESSION_STORAGE_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+let staticSessionToken = captureStaticSession();
+
+async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  if (staticSessionToken) headers.set('Authorization', `Bearer ${staticSessionToken}`);
+  const response = await fetch(`${API_ORIGIN}${path}`, {
+    ...init,
+    headers,
+    credentials: API_ORIGIN ? 'omit' : 'same-origin',
+  });
+  if (response.status === 401 && API_ORIGIN) {
+    staticSessionToken = '';
+    try {
+      window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    } catch {
+      // Session storage can be unavailable in hardened browser modes.
+    }
+    const returnTo = `${window.location.origin}${window.location.pathname}`;
+    window.location.replace(
+      `${API_ORIGIN}/auth/login?return_to=${encodeURIComponent(returnTo)}`,
+    );
+    return new Promise<Response>(() => undefined);
+  }
+  return response;
+}
+
 const ranges: Array<{ id: RangeKey; label: string }> = [
   { id: '7', label: '7 dies' },
   { id: '30', label: '30 dies' },
@@ -468,7 +512,7 @@ export default function App() {
     const selectedRange = dateRange(range);
     setLoading(true);
     setError('');
-    fetch(`/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`, {
+    apiFetch(`/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`, {
       signal: controller.signal,
       headers: { Accept: 'application/json' },
     })
@@ -500,14 +544,14 @@ export default function App() {
     setSyncing(true);
     setSyncMessage('');
     try {
-      const syncResponse = await fetch('/api/sync?source=github', {
+      const syncResponse = await apiFetch('/api/sync?source=github', {
         method: 'POST',
         headers: { Accept: 'application/json' },
       });
       if (!syncResponse.ok) {
         throw new Error(`No s’ha pogut sincronitzar GitHub (${syncResponse.status}).`);
       }
-      const dashboardResponse = await fetch(
+      const dashboardResponse = await apiFetch(
         `/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`,
         { headers: { Accept: 'application/json' } },
       );
@@ -531,7 +575,7 @@ export default function App() {
     setAlternativeImporting(true);
     setAlternativeImportMessage('');
     try {
-      const importResponse = await fetch('/api/import/alternativeto', {
+      const importResponse = await apiFetch('/api/import/alternativeto', {
         method: 'POST',
         headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify(snapshot),
@@ -539,7 +583,7 @@ export default function App() {
       if (!importResponse.ok) {
         throw new Error(`No s’ha pogut importar AlternativeTo (${importResponse.status}).`);
       }
-      const dashboardResponse = await fetch(
+      const dashboardResponse = await apiFetch(
         `/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`,
         { headers: { Accept: 'application/json' } },
       );
