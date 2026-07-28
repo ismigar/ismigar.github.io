@@ -3,12 +3,21 @@ import {
   clearAuthCookies,
   createOAuthStateCookie,
   createSessionCookie,
+  createSessionToken,
   isAuthorized,
   stableHash,
   verifyOAuthState,
   verifyWebhookSignature,
 } from './security';
-import { runScheduledSync, syncAlternativeTo, syncGa4, syncGitHub, syncSponsors } from './sync';
+import {
+  importAlternativeToSnapshot,
+  normalizeAlternativeToSnapshot,
+  runScheduledSync,
+  syncAlternativeTo,
+  syncGa4,
+  syncGitHub,
+  syncSponsors,
+} from './sync';
 import type { Env } from './types';
 
 const JSON_HEADERS = {
@@ -38,10 +47,23 @@ function callbackUrl(request: Request): string {
   return new URL('/auth/callback', request.url).toString();
 }
 
+function publicDashboardUrl(env: Env): string | null {
+  const configured = env.DASHBOARD_PUBLIC_URL?.trim() ?? '';
+  try {
+    const url = new URL(configured);
+    return url.protocol === 'https:' ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 async function login(request: Request, env: Env): Promise<Response> {
   const config = authConfiguration(env);
   if (!config) return json({ error: 'GitHub OAuth is not configured' }, 503);
-  const state = crypto.randomUUID();
+  const requestedReturnTo = new URL(request.url).searchParams.get('return_to');
+  const dashboardUrl = publicDashboardUrl(env);
+  const usePublicDashboard = Boolean(dashboardUrl && requestedReturnTo === dashboardUrl);
+  const state = `${crypto.randomUUID()}${usePublicDashboard ? '_public' : ''}`;
   const authorize = new URL('https://github.com/login/oauth/authorize');
   authorize.searchParams.set('client_id', config.clientId);
   authorize.searchParams.set('redirect_uri', callbackUrl(request));
@@ -88,8 +110,17 @@ async function oauthCallback(request: Request, env: Env): Promise<Response> {
   if (!userResponse.ok || !user.id || loginName !== config.allowedLogin) {
     return json({ error: 'This GitHub account is not allowed' }, 403);
   }
-  const headers = new Headers({ Location: '/', 'Cache-Control': 'no-store' });
-  headers.append('Set-Cookie', await createSessionCookie(loginName, user.id, config.sessionSecret));
+  const sessionToken = await createSessionToken(loginName, user.id, config.sessionSecret);
+  const dashboardUrl = publicDashboardUrl(env);
+  const location =
+    state.endsWith('_public') && dashboardUrl
+      ? `${dashboardUrl}#session=${encodeURIComponent(sessionToken)}`
+      : '/';
+  const headers = new Headers({ Location: location, 'Cache-Control': 'no-store' });
+  headers.append(
+    'Set-Cookie',
+    await createSessionCookie(loginName, user.id, config.sessionSecret),
+  );
   headers.append('Set-Cookie', clearAuthCookies()[1]);
   return new Response(null, { status: 302, headers });
 }
@@ -349,8 +380,22 @@ async function manualSync(request: Request, env: Env): Promise<Response> {
   return json({ synced: source });
 }
 
+async function importAlternativeTo(request: Request, env: Env): Promise<Response> {
+  let snapshot;
+  try {
+    snapshot = normalizeAlternativeToSnapshot(await request.json());
+  } catch (error) {
+    return json({ error: error instanceof Error ? error.message : 'Invalid snapshot' }, 400);
+  }
+  await importAlternativeToSnapshot(env, snapshot);
+  return json({ imported: true });
+}
+
 async function handleRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
+  if (request.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
+    return new Response(null, { status: 204 });
+  }
   if (request.method === 'GET' && url.pathname === '/auth/login') return login(request, env);
   if (request.method === 'GET' && url.pathname === '/auth/callback') return oauthCallback(request, env);
   if (request.method === 'GET' && url.pathname === '/auth/logout') return logout();
@@ -372,15 +417,37 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   if (request.method === 'POST' && url.pathname === '/api/import/sponsors') {
     return importSponsors(request, env);
   }
+  if (request.method === 'POST' && url.pathname === '/api/import/alternativeto') {
+    return importAlternativeTo(request, env);
+  }
   if (request.method === 'POST' && url.pathname === '/api/sync') return manualSync(request, env);
   return env.ASSETS.fetch(request);
 }
 
+function withCors(request: Request, env: Env, response: Response): Response {
+  const requestOrigin = request.headers.get('Origin');
+  const dashboardUrl = publicDashboardUrl(env);
+  if (!requestOrigin || !dashboardUrl || requestOrigin !== new URL(dashboardUrl).origin) {
+    return response;
+  }
+  const headers = new Headers(response.headers);
+  headers.set('Access-Control-Allow-Origin', requestOrigin);
+  headers.set('Access-Control-Allow-Headers', 'Accept, Authorization, Content-Type');
+  headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  headers.append('Vary', 'Origin');
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
-  fetch(request: Request, env: Env): Promise<Response> {
-    return handleRequest(request, env).catch((error) =>
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const response = await handleRequest(request, env).catch((error) =>
       json({ error: error instanceof Error ? error.message : 'Unexpected error' }, 500),
     );
+    return withCors(request, env, response);
   },
   async scheduled(controller: ScheduledController, env: Env, context: ExecutionContext) {
     const daily = controller.cron === '15 2 * * *';

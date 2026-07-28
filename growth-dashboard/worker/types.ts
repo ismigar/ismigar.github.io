@@ -11,6 +11,7 @@ export interface Env {
   GITHUB_OAUTH_CLIENT_SECRET?: string;
   GITHUB_ALLOWED_LOGIN?: string;
   SESSION_SECRET?: string;
+  DASHBOARD_PUBLIC_URL?: string;
   GA4_PROPERTY_ID?: string;
   GA4_CLIENT_EMAIL?: string;
   GA4_PRIVATE_KEY?: string;

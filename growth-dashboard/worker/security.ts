@@ -72,23 +72,35 @@ export async function createSessionCookie(
   secret: string,
   now = Date.now(),
 ): Promise<string> {
+  return secureCookie(
+    SESSION_COOKIE,
+    await createSessionToken(login, id, secret, now),
+    8 * 60 * 60,
+  );
+}
+
+export async function createSessionToken(
+  login: string,
+  id: number,
+  secret: string,
+  now = Date.now(),
+): Promise<string> {
   const payload: SessionPayload = {
     login: login.toLowerCase(),
     id,
     exp: Math.floor(now / 1000) + 8 * 60 * 60,
   };
   const encoded = bytesToBase64Url(encoder.encode(JSON.stringify(payload)));
-  return secureCookie(SESSION_COOKIE, `${encoded}.${await hmac(encoded, secret)}`, 8 * 60 * 60);
+  return `${encoded}.${await hmac(encoded, secret)}`;
 }
 
-export async function readSession(
-  request: Request,
+async function readSessionToken(
+  token: string | null,
   secret: string | undefined,
   now = Date.now(),
 ): Promise<SessionPayload | null> {
-  if (!secret) return null;
-  const token = cookieValue(request, SESSION_COOKIE);
-  const [encoded, signature] = token?.split('.') ?? [];
+  if (!secret || !token) return null;
+  const [encoded, signature] = token.split('.');
   if (!encoded || !signature || !(await verifyHmac(encoded, signature, secret))) return null;
   try {
     const payload = JSON.parse(decoder.decode(base64UrlToBytes(encoded))) as SessionPayload;
@@ -97,6 +109,16 @@ export async function readSession(
   } catch {
     return null;
   }
+}
+
+export async function readSession(
+  request: Request,
+  secret: string | undefined,
+  now = Date.now(),
+): Promise<SessionPayload | null> {
+  const authorization = request.headers.get('Authorization') ?? '';
+  const bearerToken = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : null;
+  return readSessionToken(bearerToken ?? cookieValue(request, SESSION_COOKIE), secret, now);
 }
 
 export async function createOAuthStateCookie(state: string, secret: string): Promise<string> {

@@ -5,6 +5,50 @@ import type { DashboardData, TimelinePoint } from './types';
 type RangeKey = '7' | '30' | '90' | 'all';
 type TimelineMetric = 'redirects' | 'repositoryViews' | 'releaseViews' | 'downloads';
 
+const API_ORIGIN = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '');
+const SESSION_STORAGE_KEY = 'gnosi_growth_session';
+
+function captureStaticSession(): string {
+  if (!API_ORIGIN) return '';
+  try {
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    const receivedToken = fragment.get('session');
+    if (receivedToken) {
+      window.sessionStorage.setItem(SESSION_STORAGE_KEY, receivedToken);
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    }
+    return window.sessionStorage.getItem(SESSION_STORAGE_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+let staticSessionToken = captureStaticSession();
+
+async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  if (staticSessionToken) headers.set('Authorization', `Bearer ${staticSessionToken}`);
+  const response = await fetch(`${API_ORIGIN}${path}`, {
+    ...init,
+    headers,
+    credentials: API_ORIGIN ? 'omit' : 'same-origin',
+  });
+  if (response.status === 401 && API_ORIGIN) {
+    staticSessionToken = '';
+    try {
+      window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    } catch {
+      // Session storage can be unavailable in hardened browser modes.
+    }
+    const returnTo = `${window.location.origin}${window.location.pathname}`;
+    window.location.replace(
+      `${API_ORIGIN}/auth/login?return_to=${encodeURIComponent(returnTo)}`,
+    );
+    return new Promise<Response>(() => undefined);
+  }
+  return response;
+}
+
 const ranges: Array<{ id: RangeKey; label: string }> = [
   { id: '7', label: '7 dies' },
   { id: '30', label: '30 dies' },
@@ -279,6 +323,12 @@ function EmptyState({ label, compact = false }: { label: string; compact?: boole
 }
 
 function sourceStatusLabel(source: DashboardData['sources'][number]): string {
+  if (
+    source.id === 'alternativeto' &&
+    source.message.toLowerCase().includes('manual snapshot')
+  ) {
+    return 'manual';
+  }
   if (source.status === 'degraded') {
     return source.id === 'alternativeto' && source.message.includes('403')
       ? 'bloquejat'
@@ -336,6 +386,116 @@ function SourceHealth({
   );
 }
 
+interface AlternativeToDraft {
+  likes: number;
+  comments: number;
+  reviews: number;
+  rating: number;
+}
+
+function AlternativeToPanel({
+  data,
+  importing,
+  importMessage,
+  onImport,
+}: {
+  data: DashboardData;
+  importing: boolean;
+  importMessage: string;
+  onImport: (snapshot: AlternativeToDraft) => Promise<boolean>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<AlternativeToDraft>({
+    likes: data.alternativeTo.likes,
+    comments: data.alternativeTo.comments,
+    reviews: data.alternativeTo.reviews,
+    rating: data.alternativeTo.rating,
+  });
+
+  useEffect(() => {
+    setDraft({
+      likes: data.alternativeTo.likes,
+      comments: data.alternativeTo.comments,
+      reviews: data.alternativeTo.reviews,
+      rating: data.alternativeTo.rating,
+    });
+  }, [
+    data.alternativeTo.comments,
+    data.alternativeTo.likes,
+    data.alternativeTo.rating,
+    data.alternativeTo.reviews,
+  ]);
+
+  const updateDraft = (key: keyof AlternativeToDraft, value: string) => {
+    setDraft((current) => ({ ...current, [key]: Number(value) }));
+  };
+
+  return (
+    <section className="panel alternative-panel">
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow">Descobriment</span>
+          <h2>AlternativeTo</h2>
+        </div>
+        <div className="source-logo large">A</div>
+      </div>
+      <div className="rating">
+        <strong>{formatNumber(data.alternativeTo.rating, 1)}</strong>
+        <div>
+          <span className="stars" aria-label={`${data.alternativeTo.rating} de 5`}>★★★★★</span>
+          <small>{formatNumber(data.alternativeTo.reviews)} valoracions</small>
+        </div>
+      </div>
+      <div className="alt-metrics">
+        <div><strong>{formatNumber(data.alternativeTo.likes)}</strong><span>m’agrada</span></div>
+        <div><strong>{formatNumber(data.alternativeTo.comments)}</strong><span>comentaris</span></div>
+        <div><strong>{formatNumber(data.funnel[0]?.value ?? 0)}</strong><span>clics sortints</span></div>
+      </div>
+      <div className="alt-import">
+        <button type="button" className="sync-button" onClick={() => setEditing((value) => !value)}>
+          {editing ? 'Tanca l’edició' : 'Actualitza les dades'}
+        </button>
+        {editing && (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void onImport(draft).then((saved) => {
+                if (saved) setEditing(false);
+              });
+            }}
+          >
+            <div className="alt-import-grid">
+              <label>
+                Likes
+                <input type="number" min="0" step="1" value={draft.likes} onChange={(event) => updateDraft('likes', event.target.value)} />
+              </label>
+              <label>
+                Comentaris
+                <input type="number" min="0" step="1" value={draft.comments} onChange={(event) => updateDraft('comments', event.target.value)} />
+              </label>
+              <label>
+                Valoracions
+                <input type="number" min="0" step="1" value={draft.reviews} onChange={(event) => updateDraft('reviews', event.target.value)} />
+              </label>
+              <label>
+                Puntuació
+                <input type="number" min="0" max="5" step="0.1" value={draft.rating} onChange={(event) => updateDraft('rating', event.target.value)} />
+              </label>
+            </div>
+            <button type="submit" className="import-submit" disabled={importing}>
+              {importing ? 'Desant…' : 'Desa el snapshot'}
+            </button>
+          </form>
+        )}
+        {importMessage && <span className="alt-import-message" role="status">{importMessage}</span>}
+      </div>
+      <a href="https://alternativeto.net/software/gnosi--your-digital-second-brain-/about/" target="_blank" rel="noreferrer">
+        Veure la fitxa <Icon name="arrow" />
+      </a>
+    </section>
+  );
+}
+
 export default function App() {
   const [range, setRange] = useState<RangeKey>('30');
   const [data, setData] = useState<DashboardData | null>(null);
@@ -344,13 +504,15 @@ export default function App() {
   const [demo, setDemo] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
+  const [alternativeImporting, setAlternativeImporting] = useState(false);
+  const [alternativeImportMessage, setAlternativeImportMessage] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
     const selectedRange = dateRange(range);
     setLoading(true);
     setError('');
-    fetch(`/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`, {
+    apiFetch(`/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`, {
       signal: controller.signal,
       headers: { Accept: 'application/json' },
     })
@@ -382,14 +544,14 @@ export default function App() {
     setSyncing(true);
     setSyncMessage('');
     try {
-      const syncResponse = await fetch('/api/sync?source=github', {
+      const syncResponse = await apiFetch('/api/sync?source=github', {
         method: 'POST',
         headers: { Accept: 'application/json' },
       });
       if (!syncResponse.ok) {
         throw new Error(`No s’ha pogut sincronitzar GitHub (${syncResponse.status}).`);
       }
-      const dashboardResponse = await fetch(
+      const dashboardResponse = await apiFetch(
         `/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`,
         { headers: { Accept: 'application/json' } },
       );
@@ -405,6 +567,40 @@ export default function App() {
       );
     } finally {
       setSyncing(false);
+    }
+  }
+
+  async function importAlternativeToNow(snapshot: AlternativeToDraft): Promise<boolean> {
+    const selectedRange = dateRange(range);
+    setAlternativeImporting(true);
+    setAlternativeImportMessage('');
+    try {
+      const importResponse = await apiFetch('/api/import/alternativeto', {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(snapshot),
+      });
+      if (!importResponse.ok) {
+        throw new Error(`No s’ha pogut importar AlternativeTo (${importResponse.status}).`);
+      }
+      const dashboardResponse = await apiFetch(
+        `/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`,
+        { headers: { Accept: 'application/json' } },
+      );
+      if (!dashboardResponse.ok) {
+        throw new Error('Les dades s’han importat, però no s’han pogut recarregar.');
+      }
+      setData((await dashboardResponse.json()) as DashboardData);
+      setDemo(false);
+      setAlternativeImportMessage('AlternativeTo actualitzat');
+      return true;
+    } catch (reason: unknown) {
+      setAlternativeImportMessage(
+        reason instanceof Error ? reason.message : 'No s’ha pogut importar AlternativeTo.',
+      );
+      return false;
+    } finally {
+      setAlternativeImporting(false);
     }
   }
 
@@ -569,30 +765,12 @@ export default function App() {
             </div>
           </section>
 
-          <section className="panel alternative-panel">
-            <div className="section-heading">
-              <div>
-                <span className="eyebrow">Descobriment</span>
-                <h2>AlternativeTo</h2>
-              </div>
-              <div className="source-logo large">A</div>
-            </div>
-            <div className="rating">
-              <strong>{formatNumber(data.alternativeTo.rating, 1)}</strong>
-              <div>
-                <span className="stars" aria-label={`${data.alternativeTo.rating} de 5`}>★★★★★</span>
-                <small>{formatNumber(data.alternativeTo.reviews)} valoracions</small>
-              </div>
-            </div>
-            <div className="alt-metrics">
-              <div><strong>{formatNumber(data.alternativeTo.likes)}</strong><span>m’agrada</span></div>
-              <div><strong>{formatNumber(data.alternativeTo.comments)}</strong><span>comentaris</span></div>
-              <div><strong>{formatNumber(data.funnel[0]?.value ?? 0)}</strong><span>clics sortints</span></div>
-            </div>
-            <a href="https://alternativeto.net/software/gnosi--your-digital-second-brain-/about/" target="_blank" rel="noreferrer">
-              Veure la fitxa <Icon name="arrow" />
-            </a>
-          </section>
+          <AlternativeToPanel
+            data={data}
+            importing={alternativeImporting}
+            importMessage={alternativeImportMessage}
+            onImport={importAlternativeToNow}
+          />
         </div>
       </main>
 
