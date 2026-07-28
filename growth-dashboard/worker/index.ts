@@ -1,5 +1,13 @@
 import { buildDashboard } from './metrics';
-import { isAuthorized, stableHash, verifyWebhookSignature } from './security';
+import {
+  clearAuthCookies,
+  createOAuthStateCookie,
+  createSessionCookie,
+  isAuthorized,
+  stableHash,
+  verifyOAuthState,
+  verifyWebhookSignature,
+} from './security';
 import { runScheduledSync, syncAlternativeTo, syncGa4, syncGitHub, syncSponsors } from './sync';
 import type { Env } from './types';
 
@@ -10,6 +18,86 @@ const JSON_HEADERS = {
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
+}
+
+function authConfiguration(env: Env): {
+  clientId: string;
+  clientSecret: string;
+  allowedLogin: string;
+  sessionSecret: string;
+} | null {
+  const clientId = env.GITHUB_OAUTH_CLIENT_ID?.trim() ?? '';
+  const clientSecret = env.GITHUB_OAUTH_CLIENT_SECRET?.trim() ?? '';
+  const allowedLogin = env.GITHUB_ALLOWED_LOGIN?.trim().toLowerCase() ?? '';
+  const sessionSecret = env.SESSION_SECRET?.trim() ?? '';
+  if (!clientId || !clientSecret || !allowedLogin || !sessionSecret) return null;
+  return { clientId, clientSecret, allowedLogin, sessionSecret };
+}
+
+function callbackUrl(request: Request): string {
+  return new URL('/auth/callback', request.url).toString();
+}
+
+async function login(request: Request, env: Env): Promise<Response> {
+  const config = authConfiguration(env);
+  if (!config) return json({ error: 'GitHub OAuth is not configured' }, 503);
+  const state = crypto.randomUUID();
+  const authorize = new URL('https://github.com/login/oauth/authorize');
+  authorize.searchParams.set('client_id', config.clientId);
+  authorize.searchParams.set('redirect_uri', callbackUrl(request));
+  authorize.searchParams.set('scope', 'read:user');
+  authorize.searchParams.set('state', state);
+  const headers = new Headers({ Location: authorize.toString(), 'Cache-Control': 'no-store' });
+  headers.append('Set-Cookie', await createOAuthStateCookie(state, config.sessionSecret));
+  return new Response(null, { status: 302, headers });
+}
+
+async function oauthCallback(request: Request, env: Env): Promise<Response> {
+  const config = authConfiguration(env);
+  if (!config) return json({ error: 'GitHub OAuth is not configured' }, 503);
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code') ?? '';
+  const state = url.searchParams.get('state') ?? '';
+  if (!code || !state || !(await verifyOAuthState(request, state, config.sessionSecret))) {
+    return json({ error: 'Invalid OAuth state' }, 400);
+  }
+  const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      code,
+      redirect_uri: callbackUrl(request),
+    }),
+  });
+  const tokenPayload = await tokenResponse.json<{ access_token?: string; error?: string }>();
+  if (!tokenResponse.ok || !tokenPayload.access_token) {
+    return json({ error: tokenPayload.error ?? 'GitHub token exchange failed' }, 502);
+  }
+  const userResponse = await fetch('https://api.github.com/user', {
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${tokenPayload.access_token}`,
+      'User-Agent': 'Gnosi-Growth-Dashboard',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
+  const user = await userResponse.json<{ id?: number; login?: string }>();
+  const loginName = user.login?.toLowerCase() ?? '';
+  if (!userResponse.ok || !user.id || loginName !== config.allowedLogin) {
+    return json({ error: 'This GitHub account is not allowed' }, 403);
+  }
+  const headers = new Headers({ Location: '/', 'Cache-Control': 'no-store' });
+  headers.append('Set-Cookie', await createSessionCookie(loginName, user.id, config.sessionSecret));
+  headers.append('Set-Cookie', clearAuthCookies()[1]);
+  return new Response(null, { status: 302, headers });
+}
+
+function logout(): Response {
+  const headers = new Headers({ Location: '/auth/login', 'Cache-Control': 'no-store' });
+  clearAuthCookies().forEach((cookie) => headers.append('Set-Cookie', cookie));
+  return new Response(null, { status: 302, headers });
 }
 
 function parseDate(value: string | null, fallback: string): string {
@@ -263,6 +351,9 @@ async function manualSync(request: Request, env: Env): Promise<Response> {
 
 async function handleRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
+  if (request.method === 'GET' && url.pathname === '/auth/login') return login(request, env);
+  if (request.method === 'GET' && url.pathname === '/auth/callback') return oauthCallback(request, env);
+  if (request.method === 'GET' && url.pathname === '/auth/logout') return logout();
   const redirectMatch = url.pathname.match(/^\/go\/alternativeto\/([a-z-]+)\/?$/);
   if (request.method === 'GET' && redirectMatch) {
     return handleRedirect(request, env, redirectMatch[1]);
@@ -270,8 +361,12 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   if (request.method === 'POST' && url.pathname === '/api/webhooks/github/sponsors') {
     return sponsorsWebhook(request, env);
   }
-  if (url.pathname.startsWith('/api/') && !isAuthorized(request, env)) {
-    return json({ error: 'Unauthorized' }, 401);
+  if (!(await isAuthorized(request, env))) {
+    if (url.pathname.startsWith('/api/')) return json({ error: 'Unauthorized' }, 401);
+    return new Response(null, {
+      status: 302,
+      headers: { Location: '/auth/login', 'Cache-Control': 'no-store' },
+    });
   }
   if (request.method === 'GET' && url.pathname === '/api/dashboard') return dashboard(request, env);
   if (request.method === 'POST' && url.pathname === '/api/import/sponsors') {

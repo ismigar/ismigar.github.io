@@ -5,7 +5,7 @@ acquisition funnel from community and sponsorship outcomes, stores historical
 snapshots in D1, and runs entirely on Cloudflare's free tier.
 
 Current Worker URL:
-`https://gnosi-growth-dashboard.gnosi-ismigar.workers.dev`
+`https://gnosi-growth-dashboard.gnosi-ismigar-growth.workers.dev`
 
 ## Local development
 
@@ -23,21 +23,21 @@ Current Worker URL:
 1. Create a free D1 database named `gnosi-growth` and replace the placeholder
    `database_id` in `wrangler.jsonc`.
 2. Store `GITHUB_TOKEN`, `GITHUB_WEBHOOK_SECRET`, `GA4_CLIENT_EMAIL`,
-   `GA4_PRIVATE_KEY`, and `ALLOWED_EMAIL` with `wrangler secret put`. Never
-   commit them.
+   `GA4_PRIVATE_KEY`, `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`,
+   and a random `SESSION_SECRET` with `wrangler secret put`. Never commit them.
 3. Replace the non-secret `GA4_PROPERTY_ID` placeholder.
 4. Grant the GA4 service account Viewer access to the existing property.
 5. Configure a GitHub Sponsors webhook at
    `/api/webhooks/github/sponsors` with the same webhook secret.
-6. Create a Cloudflare Access application for
-   `growth.gnosi.temenosismael.org`. Use GitHub as the identity provider and
-   allow only the configured account email.
-7. Add Access bypass policies only for:
-   - `/go/alternativeto/*`
-   - `/api/webhooks/github/sponsors`
-8. Keep `/api/*` and the dashboard behind Access. The Worker performs an
-   additional email check for all administrative API routes.
-9. Add the custom domain after the first successful Worker deployment.
+6. Create a GitHub OAuth App with callback URL
+   `https://gnosi-growth-dashboard.gnosi-ismigar-growth.workers.dev/auth/callback`.
+   The Worker requests only public profile access and allows only the GitHub
+   login configured in `GITHUB_ALLOWED_LOGIN`.
+7. Keep the dashboard and `/api/*` behind the signed session. Only
+   `/auth/*`, `/go/alternativeto/*`, and the signature-verified Sponsors
+   webhook are public.
+8. Add the custom domain after the first successful Worker deployment. Update
+   the OAuth callback URL when the custom domain becomes active.
 
 `growth.gnosi.temenosismael.org` can only be attached after
 `temenosismael.org` is added to the same Cloudflare account and its DNS is

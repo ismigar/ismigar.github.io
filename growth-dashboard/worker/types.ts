@@ -7,7 +7,10 @@ export interface Env {
   GITHUB_WEBHOOK_SECRET?: string;
   ALTERNATIVETO_URL: string;
   DASHBOARD_START_DATE: string;
-  ALLOWED_EMAIL?: string;
+  GITHUB_OAUTH_CLIENT_ID?: string;
+  GITHUB_OAUTH_CLIENT_SECRET?: string;
+  GITHUB_ALLOWED_LOGIN?: string;
+  SESSION_SECRET?: string;
   GA4_PROPERTY_ID?: string;
   GA4_CLIENT_EMAIL?: string;
   GA4_PRIVATE_KEY?: string;

@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { extractPlatform, parseAlternativeTo } from '../worker/alternativeto';
 import { csvRows } from '../worker/index';
 import { calculateAssetDeltas } from '../worker/metrics';
-import { verifyWebhookSignature } from '../worker/security';
+import {
+  createOAuthStateCookie,
+  createSessionCookie,
+  readSession,
+  verifyOAuthState,
+  verifyWebhookSignature,
+} from '../worker/security';
 
 describe('AlternativeTo parser', () => {
   it('extracts public product signals from JSON-LD and visible text', () => {
@@ -81,5 +87,34 @@ describe('sponsor imports and webhook security', () => {
       .join('');
     await expect(verifyWebhookSignature(body, `sha256=${hex}`, secret)).resolves.toBe(true);
     await expect(verifyWebhookSignature(`${body}x`, `sha256=${hex}`, secret)).resolves.toBe(false);
+  });
+});
+
+describe('dashboard authentication', () => {
+  it('accepts a valid signed GitHub session and rejects tampering or expiry', async () => {
+    const secret = 'session-secret-with-enough-entropy';
+    const cookie = await createSessionCookie('ismigar', 42, secret, 1_000_000);
+    const request = new Request('https://growth.example.test/', {
+      headers: { Cookie: cookie.split(';')[0] },
+    });
+    await expect(readSession(request, secret, 1_000_001)).resolves.toMatchObject({
+      login: 'ismigar',
+      id: 42,
+    });
+    const tampered = new Request('https://growth.example.test/', {
+      headers: { Cookie: cookie.split(';')[0].replace('gnosi_growth_session=', 'gnosi_growth_session=x') },
+    });
+    await expect(readSession(tampered, secret, 1_000_001)).resolves.toBeNull();
+    await expect(readSession(request, secret, 1_000_000 + 8 * 60 * 60 * 1000)).resolves.toBeNull();
+  });
+
+  it('binds the OAuth callback state to a signed short-lived cookie', async () => {
+    const secret = 'session-secret-with-enough-entropy';
+    const cookie = await createOAuthStateCookie('expected-state', secret);
+    const request = new Request('https://growth.example.test/auth/callback', {
+      headers: { Cookie: cookie.split(';')[0] },
+    });
+    await expect(verifyOAuthState(request, 'expected-state', secret)).resolves.toBe(true);
+    await expect(verifyOAuthState(request, 'different-state', secret)).resolves.toBe(false);
   });
 });
