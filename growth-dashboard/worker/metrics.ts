@@ -42,6 +42,12 @@ function sumMetric(rows: SnapshotRow[], metric: string): number {
   return rows.filter((row) => row.metric === metric).reduce((sum, row) => sum + row.value, 0);
 }
 
+function sumMetricDimension(rows: SnapshotRow[], metric: string, dimension: string): number {
+  return rows
+    .filter((row) => row.metric === metric && row.dimension === dimension)
+    .reduce((sum, row) => sum + row.value, 0);
+}
+
 function latestMetric(rows: SnapshotRow[], metric: string): number {
   const matching = rows.filter((row) => row.metric === metric);
   return matching.length ? matching.at(-1)!.value : 0;
@@ -62,6 +68,17 @@ export function buildDashboard(
   const assetDeltas = calculateAssetDeltas(assets);
   const currentAssets = assetDeltas.filter((row) => row.period_date >= from && row.period_date <= to);
   const currentDownloads = currentAssets.reduce((sum, row) => sum + row.delta, 0);
+  const latestAssetsById = new Map<number, AssetRow>();
+  assets.forEach((row) => {
+    const current = latestAssetsById.get(row.asset_id);
+    if (!current || row.captured_at > current.captured_at) latestAssetsById.set(row.asset_id, row);
+  });
+  const latestAssets = [...latestAssetsById.values()];
+  const lifetimeDownloads = latestAssets.reduce((sum, row) => sum + row.download_count, 0);
+  const installerPattern = /\.(?:dmg|exe|msi|deb|appimage)$/i;
+  const installerDownloads = latestAssets
+    .filter((row) => installerPattern.test(row.asset_name))
+    .reduce((sum, row) => sum + row.download_count, 0);
   const previousDownloads = assetDeltas
     .filter((row) => row.period_date >= previousFrom && row.period_date <= previousTo)
     .reduce((sum, row) => sum + row.delta, 0);
@@ -76,8 +93,8 @@ export function buildDashboard(
     return {
       date,
       redirects: redirectsByDate.get(date) ?? 0,
-      repositoryViews: sumMetric(dayRows, 'repository_views'),
-      releaseViews: sumMetric(dayRows, 'release_views'),
+      repositoryViews: sumMetricDimension(dayRows, 'repository_views', 'total'),
+      releaseViews: latestMetric(dayRows, 'release_views_14d'),
       downloads: currentAssets.filter((row) => row.period_date === date).reduce((sum, row) => sum + row.delta, 0),
       stars: latestMetric(dayRows, 'stars'),
       issues: sumMetric(dayRows, 'issues_created'),
@@ -87,25 +104,61 @@ export function buildDashboard(
   });
 
   const redirects = [...redirectsByDate.values()].reduce((sum, value) => sum + value, 0);
-  const repositoryViews = sumMetric(currentRows, 'repository_views');
-  const releaseViews = sumMetric(currentRows, 'release_views');
+  const totalRepositoryViews = sumMetricDimension(currentRows, 'repository_views', 'total');
+  const alternativeToRepositoryViews = latestMetric(
+    currentRows,
+    'alternativeto_github_views_14d',
+  );
+  const releaseViews = latestMetric(currentRows, 'release_views_14d');
+  const githubSync = syncRows.find((row) => String(row.source) === 'github');
+  const trafficAvailable = !String(githubSync?.message ?? '').includes('required for traffic');
   const funnelValues = [
     { id: 'alternativeto', label: 'Clics des d’AlternativeTo', value: redirects },
-    { id: 'repository', label: 'Visites a GitHub', value: repositoryViews },
-    { id: 'releases', label: 'Visites a releases', value: releaseViews },
-    { id: 'downloads', label: 'Descàrregues confirmades', value: currentDownloads },
+    {
+      id: 'repository',
+      label: 'Visites GitHub des d’AlternativeTo',
+      value: trafficAvailable ? alternativeToRepositoryViews : null,
+      detail: trafficAvailable
+        ? alternativeToRepositoryViews > redirects
+          ? 'Inclou visites prèvies al redirect rastrejat · 14 dies'
+          : 'Referidor GitHub · finestra mòbil de 14 dies'
+        : 'Cal un token de trànsit',
+    },
+    {
+      id: 'releases',
+      label: 'Visites totals a releases',
+      value: trafficAvailable ? releaseViews : null,
+      detail: trafficAvailable
+        ? 'Tot GitHub · finestra mòbil de 14 dies'
+        : 'Dada no disponible',
+    },
+    {
+      id: 'downloads',
+      label: 'Noves descàrregues confirmades',
+      value: currentDownloads,
+      detail: lifetimeDownloads
+        ? `${lifetimeDownloads} acumulades abans o durant el seguiment`
+        : undefined,
+    },
   ];
   const funnel = funnelValues.map((item, index) => ({
     ...item,
     conversion:
-      index === 0 || funnelValues[index - 1].value <= 0
+      index === 0 ||
+      index > 1 ||
+      item.value === null ||
+      funnelValues[index - 1].value === null ||
+      funnelValues[index - 1].value! <= 0 ||
+      item.value > funnelValues[index - 1].value!
         ? null
-        : Math.round((item.value / funnelValues[index - 1].value) * 1000) / 10,
+        : Math.round((item.value / funnelValues[index - 1].value!) * 1000) / 10,
   }));
 
-  const groupAssets = (key: (row: (typeof currentAssets)[number]) => string) => {
+  const groupAssets = (key: (row: AssetRow) => string) => {
     const totals = new Map<string, number>();
-    currentAssets.forEach((row) => totals.set(key(row), (totals.get(key(row)) ?? 0) + row.delta));
+    latestAssets.forEach((row) =>
+      totals.set(key(row), (totals.get(key(row)) ?? 0) + row.download_count),
+    );
     return [...totals]
       .map(([label, value]) => ({ label, value }))
       .filter((item) => item.value > 0)
@@ -140,12 +193,18 @@ export function buildDashboard(
     timeline,
     comparison: {
       redirects: safePercent(redirects, sumMetric(previousRows, 'alternativeto_redirects')),
-      repositoryViews: safePercent(repositoryViews, sumMetric(previousRows, 'repository_views')),
-      releaseViews: safePercent(releaseViews, sumMetric(previousRows, 'release_views')),
+      repositoryViews: safePercent(
+        totalRepositoryViews,
+        sumMetricDimension(previousRows, 'repository_views', 'total'),
+      ),
+      releaseViews: safePercent(releaseViews, latestMetric(previousRows, 'release_views_14d')),
       downloads: safePercent(currentDownloads, previousDownloads),
     },
     downloads: {
-      total: currentDownloads,
+      total: lifetimeDownloads,
+      newInPeriod: currentDownloads,
+      installers: installerDownloads,
+      extensions: lifetimeDownloads - installerDownloads,
       byVersion: groupAssets((row) => row.release_tag),
       byPlatform: groupAssets((row) => extractPlatform(row.asset_name)),
       byAsset: groupAssets((row) => row.asset_name),

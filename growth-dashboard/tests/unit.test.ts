@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { extractPlatform, parseAlternativeTo } from '../worker/alternativeto';
 import { csvRows } from '../worker/index';
-import { calculateAssetDeltas } from '../worker/metrics';
+import { buildDashboard, calculateAssetDeltas } from '../worker/metrics';
 import {
   createOAuthStateCookie,
   createSessionCookie,
@@ -49,6 +49,45 @@ describe('release asset deltas', () => {
     expect(extractPlatform('Gnosi-arm64.dmg')).toBe('macOS');
     expect(extractPlatform('Gnosi-Setup.exe')).toBe('Windows');
     expect(extractPlatform('gnosi-cite.oxt')).toBe('LibreOffice');
+  });
+});
+
+describe('GitHub traffic semantics', () => {
+  it('uses total daily repository views and the latest rolling release snapshot', () => {
+    const currentRows = [
+      { source: 'github', metric: 'repository_views', dimension: 'total', period_date: '2026-07-27', value: 20 },
+      { source: 'github', metric: 'repository_unique_visitors', dimension: 'unique', period_date: '2026-07-27', value: 5 },
+      { source: 'github', metric: 'repository_views', dimension: 'total', period_date: '2026-07-28', value: 11 },
+      { source: 'github', metric: 'repository_unique_visitors', dimension: 'unique', period_date: '2026-07-28', value: 4 },
+      { source: 'github', metric: 'release_views_14d', dimension: 'total', period_date: '2026-07-27', value: 2 },
+      { source: 'github', metric: 'release_views_14d', dimension: 'total', period_date: '2026-07-28', value: 3 },
+      { source: 'github', metric: 'alternativeto_github_views_14d', dimension: 'total', period_date: '2026-07-28', value: 2 },
+    ];
+    const dashboard = buildDashboard(
+      currentRows,
+      [],
+      [],
+      new Map([['2026-07-28', 1]]),
+      [],
+      [{ source: 'github', status: 'healthy', last_success_at: '2026-07-28T12:00:00Z', message: '' }],
+      '2026-07-27',
+      '2026-07-28',
+      '2026-07-25',
+      '2026-07-26',
+    );
+
+    expect(dashboard.funnel[1]).toMatchObject({
+      value: 2,
+      conversion: null,
+      detail: 'Inclou visites prèvies al redirect rastrejat · 14 dies',
+    });
+    expect(dashboard.funnel[2]).toMatchObject({
+      value: 3,
+      conversion: null,
+      detail: 'Tot GitHub · finestra mòbil de 14 dies',
+    });
+    expect(dashboard.comparison.repositoryViews).toBe(100);
+    expect(dashboard.timeline.map((point) => point.releaseViews)).toEqual([2, 3]);
   });
 });
 

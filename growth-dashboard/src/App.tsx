@@ -66,7 +66,7 @@ function Delta({ value }: { value: number }) {
 }
 
 function Funnel({ data }: { data: DashboardData }) {
-  const max = Math.max(...data.funnel.map((step) => step.value), 1);
+  const max = Math.max(...data.funnel.map((step) => step.value ?? 0), 1);
   return (
     <section className="panel funnel-panel" aria-labelledby="funnel-title">
       <div className="section-heading">
@@ -78,13 +78,16 @@ function Funnel({ data }: { data: DashboardData }) {
       </div>
       <div className="funnel" role="list" aria-label="Embut de conversió">
         {data.funnel.map((step, index) => {
-          const width = 52 + (step.value / max) * 48;
+          const width = step.value === null ? 52 : 52 + (step.value / max) * 48;
           return (
             <div className="funnel-row" role="listitem" key={step.id}>
               <div className="funnel-meta">
                 <span className="step-number">0{index + 1}</span>
-                <span>{step.label}</span>
-                <strong>{formatNumber(step.value)}</strong>
+                <span>
+                  {step.label}
+                  {step.detail && <small className="step-detail">{step.detail}</small>}
+                </span>
+                <strong>{step.value === null ? 'N/D' : formatNumber(step.value)}</strong>
               </div>
               <div className="funnel-track">
                 <div
@@ -106,7 +109,7 @@ function Funnel({ data }: { data: DashboardData }) {
       <div className="funnel-note">
         <Icon name="spark" />
         <span>
-          El redirect mesura la intenció. GitHub confirma la descàrrega amb el canvi del comptador de l’artefacte.
+          Les 49 descàrregues prèvies formen la línia base. L’embut només atribueix com a noves els increments observats després de començar el seguiment.
         </span>
       </div>
     </section>
@@ -275,27 +278,59 @@ function EmptyState({ label, compact = false }: { label: string; compact?: boole
   return <div className={compact ? 'empty compact' : 'empty'}>{label}</div>;
 }
 
-function SourceHealth({ data }: { data: DashboardData }) {
+function sourceStatusLabel(source: DashboardData['sources'][number]): string {
+  if (source.status === 'degraded') {
+    return source.id === 'alternativeto' && source.message.includes('403')
+      ? 'bloquejat'
+      : 'parcial';
+  }
+  if (source.status === 'error') return 'error';
+  if (!source.lastSuccessAt) return 'pendent';
+  return new Intl.DateTimeFormat('ca-ES', { hour: '2-digit', minute: '2-digit' }).format(
+    new Date(source.lastSuccessAt),
+  );
+}
+
+function SourceHealth({
+  data,
+  onSyncGitHub,
+  syncing,
+  syncMessage,
+}: {
+  data: DashboardData;
+  onSyncGitHub: () => void;
+  syncing: boolean;
+  syncMessage: string;
+}) {
   return (
     <section className="source-strip" aria-label="Qualitat de les fonts">
       <div className="source-title">
         <span className="live-dot" />
         <strong>Qualitat de dades</strong>
       </div>
-      <div className="sources">
-        {data.sources.map((source) => (
-          <div className="source" key={source.id} title={source.message || 'Font actualitzada'}>
-            <span className={`status-dot ${source.status}`} />
-            <span>{source.label}</span>
-            <small>
-              {source.lastSuccessAt
-                ? new Intl.DateTimeFormat('ca-ES', { hour: '2-digit', minute: '2-digit' }).format(
-                    new Date(source.lastSuccessAt),
-                  )
-                : 'pendent'}
-            </small>
-          </div>
-        ))}
+      <div className="source-actions">
+        <div className="sources">
+          {data.sources.map((source) => (
+            <div className="source" key={source.id} title={source.message || 'Font actualitzada'}>
+              <span className={`status-dot ${source.status}`} />
+              <span>{source.label}</span>
+              <small>{sourceStatusLabel(source)}</small>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="sync-button"
+          disabled={syncing}
+          onClick={onSyncGitHub}
+        >
+          {syncing ? 'Sincronitzant…' : 'Sincronitza GitHub'}
+        </button>
+        {syncMessage && (
+          <span className="sync-message" role="status">
+            {syncMessage}
+          </span>
+        )}
       </div>
     </section>
   );
@@ -307,6 +342,8 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [demo, setDemo] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -339,6 +376,37 @@ export default function App() {
       });
     return () => controller.abort();
   }, [range]);
+
+  async function syncGitHubNow(): Promise<void> {
+    const selectedRange = dateRange(range);
+    setSyncing(true);
+    setSyncMessage('');
+    try {
+      const syncResponse = await fetch('/api/sync?source=github', {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+      });
+      if (!syncResponse.ok) {
+        throw new Error(`No s’ha pogut sincronitzar GitHub (${syncResponse.status}).`);
+      }
+      const dashboardResponse = await fetch(
+        `/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`,
+        { headers: { Accept: 'application/json' } },
+      );
+      if (!dashboardResponse.ok) {
+        throw new Error(`GitHub s’ha sincronitzat, però no s’han pogut recarregar les dades.`);
+      }
+      setData((await dashboardResponse.json()) as DashboardData);
+      setDemo(false);
+      setSyncMessage('GitHub actualitzat');
+    } catch (reason: unknown) {
+      setSyncMessage(
+        reason instanceof Error ? reason.message : 'No s’ha pogut sincronitzar GitHub.',
+      );
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   const totalCommunity = useMemo(
     () => (data ? data.community.issuesClosed + data.community.pullRequestsMerged : 0),
@@ -407,13 +475,18 @@ export default function App() {
             <p>Una lectura honesta de com Gnosi atrau, converteix i crea relacions.</p>
           </div>
           <div className="hero-stat">
-            <span>Descàrregues</span>
+            <span>Descàrregues acumulades</span>
             <strong>{formatNumber(data.downloads.total)}</strong>
-            <Delta value={data.comparison.downloads ?? 0} />
+            <small>+{formatNumber(data.downloads.newInPeriod)} durant el període</small>
           </div>
         </section>
 
-        <SourceHealth data={data} />
+        <SourceHealth
+          data={data}
+          onSyncGitHub={() => void syncGitHubNow()}
+          syncing={syncing}
+          syncMessage={syncMessage}
+        />
 
         <div className="primary-grid">
           <Funnel data={data} />
@@ -485,6 +558,7 @@ export default function App() {
               <div>
                 <span className="eyebrow">Distribució</span>
                 <h2>Què es descarrega?</h2>
+                <p>{formatNumber(data.downloads.installers)} instal·ladors · {formatNumber(data.downloads.extensions)} extensions i artefactes</p>
               </div>
               <div className="round-icon"><Icon name="download" /></div>
             </div>

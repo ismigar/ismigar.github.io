@@ -35,6 +35,9 @@ export const demoData: DashboardData = {
   comparison: { redirects: 24.6, repositoryViews: 18.2, releaseViews: 11.4, downloads: 31.0 },
   downloads: {
     total: 93,
+    newInPeriod: 24,
+    installers: 80,
+    extensions: 13,
     byVersion: [
       { label: 'v0.3.0', value: 58 },
       { label: 'v0.2.1', value: 24 },

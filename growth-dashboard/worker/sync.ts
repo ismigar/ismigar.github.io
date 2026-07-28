@@ -52,14 +52,14 @@ async function insertMetric(
 }
 
 async function githubFetch<T>(env: Env, path: string): Promise<T> {
-  if (!env.GITHUB_TOKEN) throw new Error('GITHUB_TOKEN is not configured');
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'gnosi-growth-dashboard',
+    'X-GitHub-Api-Version': GITHUB_API_VERSION,
+  };
+  if (env.GITHUB_TOKEN) headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`;
   const response = await fetch(`https://api.github.com${path}`, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-      'User-Agent': 'gnosi-growth-dashboard',
-      'X-GitHub-Api-Version': GITHUB_API_VERSION,
-    },
+    headers,
   });
   if (!response.ok) {
     throw new Error(`GitHub ${response.status}: ${await response.text()}`);
@@ -79,6 +79,12 @@ interface GitHubTraffic {
 
 interface GitHubPath {
   path: string;
+  count: number;
+  uniques: number;
+}
+
+interface GitHubReferrer {
+  referrer: string;
   count: number;
   uniques: number;
 }
@@ -103,14 +109,28 @@ export async function syncGitHub(env: Env): Promise<void> {
   const capturedAt = now();
   try {
     const ownerRepo = `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}`;
-    const [repo, traffic, paths, releases, issues, pulls] = await Promise.all([
+    const [repo, releases, issues, pulls] = await Promise.all([
       githubFetch<GitHubRepo>(env, ownerRepo),
-      githubFetch<GitHubTraffic>(env, `${ownerRepo}/traffic/views?per=day`),
-      githubFetch<GitHubPath[]>(env, `${ownerRepo}/traffic/popular/paths`),
       githubFetch<GitHubRelease[]>(env, `${ownerRepo}/releases?per_page=100`),
       githubFetch<GitHubIssue[]>(env, `${ownerRepo}/issues?state=all&per_page=100&sort=updated&direction=desc`),
       githubFetch<GitHubPull[]>(env, `${ownerRepo}/pulls?state=all&per_page=100&sort=updated&direction=desc`),
     ]);
+    let traffic: GitHubTraffic = {};
+    let paths: GitHubPath[] = [];
+    let referrers: GitHubReferrer[] = [];
+    let trafficAvailable = false;
+    if (env.GITHUB_TOKEN) {
+      try {
+        [traffic, paths, referrers] = await Promise.all([
+          githubFetch<GitHubTraffic>(env, `${ownerRepo}/traffic/views?per=day`),
+          githubFetch<GitHubPath[]>(env, `${ownerRepo}/traffic/popular/paths`),
+          githubFetch<GitHubReferrer[]>(env, `${ownerRepo}/traffic/popular/referrers`),
+        ]);
+        trafficAvailable = true;
+      } catch {
+        // Public repository metrics remain useful when the traffic permission is unavailable.
+      }
+    }
 
     const issueOnly = issues.filter((issue) => !issue.pull_request);
     const closedDurations = issueOnly
@@ -138,20 +158,82 @@ export async function syncGitHub(env: Env): Promise<void> {
     ]);
 
     for (const day of traffic.views ?? []) {
-      await insertMetric(
-        env,
-        'github',
-        'repository_views',
-        day.uniques,
-        day.timestamp.slice(0, 10),
-        'unique',
-        capturedAt,
-      );
+      await Promise.all([
+        insertMetric(
+          env,
+          'github',
+          'repository_views',
+          day.count,
+          day.timestamp.slice(0, 10),
+          'total',
+          capturedAt,
+        ),
+        insertMetric(
+          env,
+          'github',
+          'repository_unique_visitors',
+          day.uniques,
+          day.timestamp.slice(0, 10),
+          'unique',
+          capturedAt,
+        ),
+      ]);
     }
     const releaseViews = paths
       .filter((item) => item.path.includes('/releases'))
+      .reduce((sum, item) => sum + item.count, 0);
+    const releaseUniqueVisitors = paths
+      .filter((item) => item.path.includes('/releases'))
       .reduce((sum, item) => sum + item.uniques, 0);
-    await insertMetric(env, 'github', 'release_views', releaseViews, currentDate, 'unique', capturedAt);
+    const alternativeToReferrers = referrers.filter((item) =>
+      item.referrer.toLowerCase().includes('alternativeto'),
+    );
+    const alternativeToGitHubViews = alternativeToReferrers.reduce(
+      (sum, item) => sum + item.count,
+      0,
+    );
+    const alternativeToGitHubUniqueVisitors = alternativeToReferrers.reduce(
+      (sum, item) => sum + item.uniques,
+      0,
+    );
+    await Promise.all([
+      insertMetric(
+        env,
+        'github',
+        'release_views_14d',
+        releaseViews,
+        currentDate,
+        'total',
+        capturedAt,
+      ),
+      insertMetric(
+        env,
+        'github',
+        'release_unique_visitors_14d',
+        releaseUniqueVisitors,
+        currentDate,
+        'unique',
+        capturedAt,
+      ),
+      insertMetric(
+        env,
+        'github',
+        'alternativeto_github_views_14d',
+        alternativeToGitHubViews,
+        currentDate,
+        'total',
+        capturedAt,
+      ),
+      insertMetric(
+        env,
+        'github',
+        'alternativeto_github_unique_visitors_14d',
+        alternativeToGitHubUniqueVisitors,
+        currentDate,
+        'unique',
+        capturedAt,
+      ),
+    ]);
 
     const startDate = env.DASHBOARD_START_DATE;
     const createdByDay = new Map<string, number>();
@@ -195,7 +277,12 @@ export async function syncGitHub(env: Env): Promise<void> {
           .run();
       }
     }
-    await recordSync(env, 'github', 'healthy');
+    await recordSync(
+      env,
+      'github',
+      trafficAvailable ? 'healthy' : 'degraded',
+      trafficAvailable ? '' : 'Public metrics synced; GITHUB_TOKEN is required for traffic',
+    );
   } catch (error) {
     await recordSync(env, 'github', 'error', error instanceof Error ? error.message : String(error));
     throw error;
