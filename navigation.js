@@ -25,7 +25,7 @@
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
+    if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
       closeNavigation();
       toggle.focus();
     }
@@ -42,4 +42,43 @@
       closeNavigation();
     }
   });
+
+  const sectionLinks = [...navigation.querySelectorAll('a[href^="#"]')];
+  const sections = sectionLinks
+    .map((link) => document.querySelector(link.getAttribute("href")))
+    .filter(Boolean);
+
+  const setActiveSection = (section) => {
+    sectionLinks.forEach((link) => {
+      const active = section && link.getAttribute("href") === `#${section.id}`;
+      link.classList.toggle("active", Boolean(active));
+      if (active) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  };
+
+  if (sections.length && "IntersectionObserver" in window) {
+    const visibleSections = new Map();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            visibleSections.set(entry.target, entry.intersectionRatio);
+          } else {
+            visibleSections.delete(entry.target);
+          }
+        });
+
+        const activeSection = [...visibleSections.entries()]
+          .sort((left, right) => right[1] - left[1])[0]?.[0];
+        setActiveSection(activeSection || null);
+      },
+      { rootMargin: "-20% 0px -55%", threshold: [0, 0.15, 0.35, 0.6] },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+  }
 })();

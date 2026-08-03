@@ -1,0 +1,326 @@
+:root {
+  --gnosi-shell-width: 1100px;
+  --gnosi-shell-height: 66px;
+  --gnosi-shell-bg: #f6f3ec;
+  --gnosi-shell-accent: #e7dcc8;
+  --gnosi-shell-card: #fffdf8;
+  --gnosi-shell-ink: #1e293b;
+  --gnosi-shell-muted: #64748b;
+  --gnosi-shell-line: #d6c9b3;
+  --gnosi-shell-primary: #3b82f6;
+  --gnosi-shell-font: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", serif;
+}
+
+.navbar {
+  background: rgb(246 243 236 / 96%);
+  border-bottom: 1px solid var(--gnosi-shell-line);
+  color: var(--gnosi-shell-ink);
+  font-family: var(--gnosi-shell-font);
+  min-height: var(--gnosi-shell-height);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-container {
+  align-items: center;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  margin: 0 auto;
+  max-width: var(--gnosi-shell-width);
+  min-height: var(--gnosi-shell-height);
+  padding: 0 24px;
+}
+
+.navbar a,
+.gnosi-shell-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.navbar .brand,
+.gnosi-shell-footer .brand {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
+  min-height: 44px;
+}
+
+.navbar .brand-logo,
+.gnosi-shell-footer .brand-logo {
+  align-items: center;
+  background: linear-gradient(135deg, #0066ff, #00d4ff);
+  border-radius: 9px;
+  box-shadow: 0 4px 12px rgb(0 102 255 / 30%);
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.navbar .logo,
+.gnosi-shell-footer .logo {
+  color: var(--gnosi-shell-ink);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.nav-links {
+  align-items: center;
+  display: flex;
+  gap: clamp(10px, 1.5vw, 24px);
+  justify-content: center;
+  min-width: 0;
+}
+
+.nav-links a {
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  color: var(--gnosi-shell-muted);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 2px 0 0;
+}
+
+.nav-links a:hover,
+.nav-links a:focus-visible,
+.nav-links a.active,
+.nav-links a[aria-current="page"] {
+  color: var(--gnosi-shell-primary);
+}
+
+.nav-links a.active,
+.nav-links a[aria-current="page"] {
+  border-bottom-color: var(--gnosi-shell-primary);
+}
+
+.lang-switch {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+
+.lang-switch > a,
+.lang-switch > span {
+  align-items: center;
+  border-radius: 6px;
+  color: var(--gnosi-shell-muted);
+  display: inline-flex;
+  font-family: var(--gnosi-shell-font);
+  font-size: 12px;
+  font-weight: 700;
+  height: 38px;
+  justify-content: center;
+  min-width: 38px;
+  padding: 0 7px;
+}
+
+.lang-switch > .active,
+.lang-switch > [aria-current="true"] {
+  background: var(--gnosi-shell-primary);
+  color: #fff;
+}
+
+.nav-toggle {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--gnosi-shell-line);
+  border-radius: 10px;
+  color: var(--gnosi-shell-ink);
+  cursor: pointer;
+  display: none;
+  height: 44px;
+  justify-content: center;
+  padding: 0;
+  width: 44px;
+}
+
+.nav-toggle:focus-visible,
+.nav-links a:focus-visible,
+.lang-switch a:focus-visible,
+.gnosi-shell-footer a:focus-visible {
+  outline: 2px solid var(--gnosi-shell-primary);
+  outline-offset: 2px;
+}
+
+.nav-toggle-icon,
+.nav-toggle-icon::before,
+.nav-toggle-icon::after {
+  background: currentColor;
+  border-radius: 2px;
+  display: block;
+  height: 2px;
+  position: relative;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  width: 20px;
+}
+
+.nav-toggle-icon::before,
+.nav-toggle-icon::after {
+  content: "";
+  left: 0;
+  position: absolute;
+}
+
+.nav-toggle-icon::before { top: -6px; }
+.nav-toggle-icon::after { top: 6px; }
+.navbar.is-open .nav-toggle-icon { background: transparent; }
+.navbar.is-open .nav-toggle-icon::before { top: 0; transform: rotate(45deg); }
+.navbar.is-open .nav-toggle-icon::after { top: 0; transform: rotate(-45deg); }
+
+.gnosi-shell-footer {
+  background: var(--gnosi-shell-accent);
+  border-top: 1px solid var(--gnosi-shell-line);
+  color: var(--gnosi-shell-ink);
+  font-family: var(--gnosi-shell-font);
+  margin-top: 40px;
+  padding: 60px 24px 30px;
+}
+
+.gnosi-shell-footer .footer-content {
+  display: grid;
+  gap: 60px;
+  grid-template-columns: 1fr 1fr;
+  margin: 0 auto;
+  max-width: var(--gnosi-shell-width);
+}
+
+.gnosi-shell-footer .footer-brand .brand {
+  margin-bottom: 14px;
+}
+
+.gnosi-shell-footer .footer-brand .brand-logo {
+  font-size: 24px;
+  height: 42px;
+  width: 42px;
+}
+
+.gnosi-shell-footer .footer-brand p {
+  color: var(--gnosi-shell-muted);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 30ch;
+}
+
+.gnosi-shell-footer .footer-links {
+  display: flex;
+  gap: 60px;
+  justify-content: flex-end;
+}
+
+.gnosi-shell-footer .footer-col h2,
+.gnosi-shell-footer .footer-col h4 {
+  color: var(--gnosi-shell-muted);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin: 0 0 16px;
+  text-transform: uppercase;
+}
+
+.gnosi-shell-footer .footer-col a {
+  color: var(--gnosi-shell-ink);
+  display: flex;
+  font-size: 16px;
+  margin-bottom: 8px;
+  min-height: 32px;
+}
+
+.gnosi-shell-footer .footer-col a:hover,
+.gnosi-shell-footer .footer-col a:focus-visible {
+  color: var(--gnosi-shell-primary);
+}
+
+.gnosi-shell-footer .footer-bottom {
+  border-top: 1px solid var(--gnosi-shell-line);
+  margin: 40px auto 0;
+  max-width: var(--gnosi-shell-width);
+  padding-top: 30px;
+  text-align: center;
+}
+
+.gnosi-shell-footer .footer-bottom p {
+  color: var(--gnosi-shell-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    padding: 10px 16px;
+    position: relative;
+  }
+
+  .navbar .brand { grid-column: 1; grid-row: 1; min-width: 0; }
+  .lang-switch { grid-column: 2; grid-row: 1; }
+  .nav-toggle { display: inline-flex; grid-column: 3; grid-row: 1; }
+
+  .nav-links {
+    background: var(--gnosi-shell-bg);
+    border: 1px solid var(--gnosi-shell-line);
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 16px 30px rgb(30 41 59 / 14%);
+    display: none;
+    gap: 2px;
+    left: 12px;
+    max-height: calc(100dvh - 78px);
+    overflow-y: auto;
+    padding: 8px;
+    position: absolute;
+    right: 12px;
+    top: 100%;
+  }
+
+  .navbar.is-open .nav-links { display: grid; }
+
+  .nav-links a {
+    border-bottom: 0;
+    border-left: 3px solid transparent;
+    border-radius: 8px;
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  .nav-links a:hover,
+  .nav-links a:focus-visible { background: var(--gnosi-shell-accent); }
+  .nav-links a.active,
+  .nav-links a[aria-current="page"] { border-left-color: var(--gnosi-shell-primary); }
+
+  .gnosi-shell-footer .footer-content { grid-template-columns: 1fr; gap: 40px; }
+  .gnosi-shell-footer .footer-links {
+    display: grid;
+    gap: 28px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: start;
+  }
+  .gnosi-shell-footer .footer-col a { min-height: 44px; }
+}
+
+@media (max-width: 480px) {
+  .nav-container { padding-inline: 12px; }
+  .navbar .logo { font-size: 20px; }
+  .lang-switch { gap: 2px; }
+  .lang-switch > a,
+  .lang-switch > span { min-width: 32px; padding-inline: 5px; }
+  .gnosi-shell-footer { padding: 48px 16px 24px; }
+  .gnosi-shell-footer .footer-links { grid-template-columns: 1fr; gap: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-toggle-icon,
+  .nav-toggle-icon::before,
+  .nav-toggle-icon::after { transition: none; }
+}
