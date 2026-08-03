@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <script src="analytics.js"></script>
+  <script src="navigation.js" defer></script>
   <script>
     (function () {
       var lang = navigator.language || navigator.userLanguage || 'en';
@@ -33,7 +34,10 @@
         <span class="brand-logo">G</span>
         <span class="logo">Gnosi</span>
       </a>
-      <div class="nav-links">
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" aria-label="Abrir la navegación">
+        <span class="nav-toggle-icon" aria-hidden="true"></span>
+      </button>
+      <div class="nav-links" id="site-navigation">
         <a href="#funcionalidades">Funcionalidades</a>
         <a href="#ia">IA</a>
         <a href="#instalacion">Instalación</a>
