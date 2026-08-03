@@ -1354,3 +1354,313 @@ footer {
 .saas-box {
   display: none;
 }
+
+/* Responsive public-site contract */
+img,
+svg,
+video,
+iframe {
+  max-width: 100%;
+}
+
+body {
+  overflow-wrap: anywhere;
+}
+
+main,
+section,
+.section-content,
+.hero-content,
+.shot,
+.install-card,
+.support-card {
+  min-width: 0;
+}
+
+.nav-toggle {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  cursor: pointer;
+  display: none;
+  height: 44px;
+  justify-content: center;
+  padding: 0;
+  width: 44px;
+}
+
+.nav-toggle:focus-visible,
+.nav-links a:focus-visible,
+.lang-switch a:focus-visible {
+  outline: 2px solid var(--gnosi-primary);
+  outline-offset: 2px;
+}
+
+.nav-toggle-icon,
+.nav-toggle-icon::before,
+.nav-toggle-icon::after {
+  background: currentColor;
+  border-radius: 2px;
+  display: block;
+  height: 2px;
+  position: relative;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  width: 20px;
+}
+
+.nav-toggle-icon::before,
+.nav-toggle-icon::after {
+  content: "";
+  left: 0;
+  position: absolute;
+}
+
+.nav-toggle-icon::before {
+  top: -6px;
+}
+
+.nav-toggle-icon::after {
+  top: 6px;
+}
+
+.navbar.is-open .nav-toggle-icon {
+  background: transparent;
+}
+
+.navbar.is-open .nav-toggle-icon::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.navbar.is-open .nav-toggle-icon::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+.problem-grid,
+.features-grid,
+.shots-grid,
+.install-grid,
+.support-grid,
+.saas-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.code-block {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    padding: 10px 16px;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .brand {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .lang-switch {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .lang-switch a,
+  .lang-switch span {
+    align-items: center;
+    display: inline-flex;
+    height: 44px;
+    justify-content: center;
+    min-width: 36px;
+    padding: 0 7px;
+  }
+
+  .nav-links {
+    border-top: 1px solid var(--line);
+    display: none;
+    gap: 2px;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-height: calc(100dvh - 72px);
+    overflow-y: auto;
+    padding-top: 8px;
+    width: 100%;
+  }
+
+  .navbar.is-open .nav-links {
+    display: grid;
+  }
+
+  .nav-links a {
+    align-items: center;
+    border-radius: 8px;
+    display: flex;
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  .nav-links a:hover,
+  .nav-links a:focus-visible {
+    background: var(--bg-accent);
+  }
+
+  .problem,
+  .modules,
+  .features,
+  .shots,
+  .install,
+  .integrations,
+  .mockups,
+  .how-it-works,
+  .cta,
+  .support {
+    padding-bottom: 64px;
+    padding-top: 64px;
+  }
+
+  .section-header {
+    margin-bottom: 40px;
+  }
+
+  .feature-card,
+  .problem-item,
+  .install-card,
+  .support-card {
+    padding: 24px;
+  }
+
+  .footer-links {
+    display: grid;
+    gap: 28px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .footer-col a {
+    align-items: center;
+    display: flex;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    padding-inline: 12px;
+  }
+
+  .brand .logo {
+    font-size: 20px;
+  }
+
+  .brand-logo {
+    height: 40px;
+    width: 40px;
+  }
+
+  .lang-switch {
+    gap: 2px;
+  }
+
+  .lang-switch a,
+  .lang-switch span {
+    min-width: 32px;
+    padding-inline: 5px;
+  }
+
+  .hero {
+    gap: 36px;
+    padding-bottom: 48px;
+    padding-top: 96px;
+  }
+
+  .hero-logo {
+    border-radius: 32px;
+    font-size: 88px;
+    height: 136px;
+    width: 136px;
+  }
+
+  .hero-cta,
+  .cta-buttons {
+    gap: 12px;
+  }
+
+  .btn {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  .modules-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .module-card {
+    padding: 22px 10px;
+  }
+
+  .ai-spotlight {
+    border-radius: 14px;
+    margin-inline: -4px;
+    padding: 48px 18px;
+  }
+
+  .solution,
+  .support-box,
+  .saas-box {
+    padding: 22px 18px;
+  }
+
+  .shot.app .shot-body {
+    height: 220px;
+  }
+
+  .ui-side {
+    display: none;
+  }
+
+  .ui-rail {
+    width: 40px;
+  }
+
+  .ui-main {
+    padding: 16px 14px;
+  }
+
+  footer {
+    padding-inline: 16px;
+  }
+
+  .footer-links {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
