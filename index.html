@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gnosi — From source to manuscript, with your knowledge always yours</title>
     <meta name="description" content="Gnosi is a local-first, open-source research workspace that connects sources, evidence, notes and verifiable citations without locking your knowledge into a SaaS." />
+    <meta name="theme-color" content="#101d27" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="Gnosi — From source to manuscript" />
+    <meta property="og:description" content="A local-first, open-source workspace for sources, notes, evidence and verifiable citations." />
+    <meta property="og:url" content="https://gnosi.temenosismael.org/" />
+    <meta property="og:image" content="https://gnosi.temenosismael.org/assets/gnosi-app-dashboard-ca.png" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="720" />
+    <meta property="og:image:alt" content="The actual Gnosi desktop application showing its local knowledge workspace" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Gnosi — From source to manuscript" />
+    <meta name="twitter:description" content="A local-first, open-source workspace for sources, notes, evidence and verifiable citations." />
+    <meta name="twitter:image" content="https://gnosi.temenosismael.org/assets/gnosi-app-dashboard-ca.png" />
     <link rel="canonical" href="https://gnosi.temenosismael.org/" />
     <link rel="alternate" hreflang="en" href="https://gnosi.temenosismael.org/" />
     <link rel="alternate" hreflang="ca" href="https://gnosi.temenosismael.org/index.ca.html" />
@@ -15,6 +29,9 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <script src="analytics.js"></script>
     <script src="navigation.js" defer></script>
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Gnosi","applicationCategory":"EducationalApplication","operatingSystem":"macOS, Windows, Linux","url":"https://gnosi.temenosismael.org/","downloadUrl":"https://gnosi.temenosismael.org/download/","license":"https://www.gnu.org/licenses/agpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}
+    </script>
     <script>
       (function () {
         var language = navigator.language || navigator.userLanguage || "en";
@@ -31,7 +48,7 @@
     <nav class="navbar" aria-label="Main navigation">
       <div class="nav-container">
         <a href="#top" class="brand" aria-label="Gnosi home"><span class="brand-logo">G</span><span class="logo">Gnosi</span></a>
-        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" aria-label="Open navigation"><span class="nav-toggle-icon" aria-hidden="true"></span></button>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" aria-label="Open navigation" data-label-open="Open navigation" data-label-close="Close navigation"><span class="nav-toggle-icon" aria-hidden="true"></span></button>
         <div class="nav-links" id="site-navigation">
           <a href="#workflow">Workflow</a>
           <a href="#why-gnosi">Why Gnosi</a>
@@ -52,23 +69,17 @@
         <div class="hero-content">
           <span class="badge agpl">Local-first · Open source · AGPL-3.0</span>
           <h1>From source to manuscript, with your knowledge always yours.</h1>
-          <p class="subtitle">Gnosi brings your sources, annotations, connected notes, project structure and citations into one sovereign research workspace. Your files remain portable Markdown — not rows trapped in somebody else’s cloud.</p>
+          <p class="subtitle">Read, annotate, connect and cite PDFs, websites and books in one local workspace. Your notes and data remain portable Markdown.</p>
           <div class="hero-cta">
-            <a href="https://github.com/ismigar/Gnosi/releases/latest?utm_source=gnosi-site&amp;utm_medium=landing&amp;utm_campaign=community-release&amp;utm_content=hero-en" class="btn btn-primary" target="_blank" rel="noreferrer" data-download-kind="desktop" data-locale="en">Download the desktop app</a>
+            <a href="download/" class="btn btn-primary" data-download-kind="desktop" data-locale="en">Choose your download</a>
             <a href="#workflow" class="btn btn-secondary">See the research workflow</a>
           </div>
-          <div class="trust-row" aria-label="Project guarantees"><span>✓ Your files</span><span>✓ Open formats</span><span>✓ No mandatory cloud</span></div>
+          <div class="trust-row" aria-label="Project guarantees"><span>✓ Your files</span><span>✓ Open formats</span><span>✓ No account or subscription</span></div>
         </div>
-        <div class="research-preview" aria-label="Gnosi research workflow preview">
-          <div class="preview-top"><span class="preview-dot"></span><strong>Research workspace</strong><small>local vault</small></div>
-          <div class="preview-step"><span class="preview-icon">01</span><div><small>Source</small><strong>PDF · EPUB · Web · Audio</strong></div></div>
-          <div class="preview-link"></div>
-          <div class="preview-step"><span class="preview-icon">02</span><div><small>Evidence</small><strong>Quote + page + provenance</strong></div></div>
-          <div class="preview-link"></div>
-          <div class="preview-step"><span class="preview-icon">03</span><div><small>Knowledge</small><strong>[[Connected reading note]]</strong></div></div>
-          <div class="preview-link"></div>
-          <div class="preview-step is-accent"><span class="preview-icon">04</span><div><small>Writing</small><strong>[@source] → Word / LibreOffice</strong></div></div>
-        </div>
+        <figure class="product-shot">
+          <img src="assets/gnosi-app-dashboard-ca.png" width="1280" height="720" alt="The actual Gnosi desktop application showing a local vault, knowledge graph, contacts, mail, calendar and feed reader" fetchpriority="high" />
+          <figcaption>Actual Gnosi interface · Catalan shown</figcaption>
+        </figure>
       </section>
 
       <section id="why-gnosi" class="problem research-problem">
@@ -100,7 +111,7 @@
           <article><span class="capability-mark">B</span><h3>Notes can also be data</h3><p>Plain Markdown pages gain typed fields, relations, formulas, rollups and table, gallery, board, calendar or timeline views.</p></article>
           <article><span class="capability-mark">C</span><h3>AI remains accountable</h3><p>Use local or cloud models to ingest and search material while keeping provenance visible and permanent synthesis under human control.</p></article>
         </div>
-        <details class="more-capabilities"><summary>Explore the wider Gnosi ecosystem</summary><div><span>Knowledge graph</span><span>Research planning</span><span>RSS and newsletters</span><span>Multi-provider AI</span><span>MCP tools</span><span>Plugins</span><span>Mail and calendar</span><span>Translation and publishing</span></div></details>
+        <details class="more-capabilities"><summary>Explore the wider Gnosi ecosystem</summary><div><span>Knowledge graph</span><span>Research planning</span><span>RSS and newsletters</span><span>Multi-provider AI</span><span>Notion import</span><span>Plugins</span><span>Mail and calendar</span><span>Translation and publishing</span></div></details>
       </section>
 
       <section class="ownership-section">
@@ -111,7 +122,7 @@
       <section id="download" class="download-section">
         <div class="section-header"><span class="section-kicker">Try Gnosi</span><h2>Desktop first. Self-host when you need it.</h2><p>The fastest path is the desktop build. Native and Docker deployments remain available for technical users and servers.</p></div>
         <div class="download-grid">
-          <article class="download-card featured"><span class="download-label">Recommended</span><div class="download-icon">G</div><h3>Desktop application</h3><p>The backend is bundled. Download the latest macOS, Windows or Linux build and open a local vault.</p><a href="https://github.com/ismigar/Gnosi/releases/latest?utm_source=gnosi-site&amp;utm_medium=landing&amp;utm_campaign=community-release&amp;utm_content=download-en" class="btn btn-primary" target="_blank" rel="noreferrer" data-download-kind="desktop" data-locale="en">Open the latest release</a><small>Beta builds are currently unsigned. On macOS, use right-click → Open the first time.</small></article>
+          <article class="download-card featured"><span class="download-label">Recommended</span><div class="download-icon">G</div><h3>Desktop application</h3><p>The backend is bundled. Choose macOS, Windows or Linux without searching through GitHub release assets.</p><a href="download/" class="btn btn-primary" data-download-kind="desktop" data-locale="en">Choose macOS, Windows or Linux</a><small>Beta builds are currently unsigned. On macOS, use right-click → Open the first time.</small></article>
           <article class="download-card"><span class="download-label">For development</span><h3>Run natively</h3><p>Use Python and Node directly on the host. This is the recommended self-host and contribution workflow.</p><pre><code>git clone git@github.com:ismigar/Gnosi.git
 cd Gnosi/apps/gnosi</code></pre><a href="https://github.com/ismigar/Gnosi#quick-start" target="_blank" rel="noreferrer">Read the native setup guide →</a></article>
           <article class="download-card"><span class="download-label">For servers</span><h3>Docker deployment</h3><p>Use the supported all-in-one deployment when a containerized server installation fits better.</p><pre><code>docker compose up -d --build</code></pre><a href="https://github.com/ismigar/Gnosi#run-with-docker-optional" target="_blank" rel="noreferrer">Read the Docker guide →</a></article>
@@ -123,7 +134,7 @@ cd Gnosi/apps/gnosi</code></pre><a href="https://github.com/ismigar/Gnosi#quick-
         <aside class="feedback-card"><span>Useful feedback</span><h3>Tell us where the chain breaks</h3><ol><li>Could you install and open Gnosi?</li><li>Could you bring in a real source?</li><li>Could you trace a note back to its evidence?</li><li>Could you cite or export the result?</li></ol></aside>
       </section>
 
-      <section id="start" class="cta research-cta"><div class="cta-content"><span class="section-kicker">No account. No subscription.</span><h2>Take one source from reading to citation.</h2><p>Use the official multilingual research template to see the workflow, then replace the sample with your own material.</p><div class="cta-buttons"><a href="https://github.com/ismigar/Gnosi/releases/latest?utm_source=gnosi-site&amp;utm_medium=landing&amp;utm_campaign=community-release&amp;utm_content=final-en" class="btn btn-primary btn-large" target="_blank" rel="noreferrer" data-download-kind="desktop" data-locale="en">Download Gnosi</a><a href="https://github.com/ismigar/Gnosi" class="btn btn-secondary btn-large" target="_blank" rel="noreferrer">View the source</a></div></div></section>
+      <section id="start" class="cta research-cta"><div class="cta-content"><span class="section-kicker">No account. No subscription.</span><h2>Take one source from reading to citation.</h2><p>Start with a local vault and bring in one real source. Your notes, links and citations remain files you control.</p><div class="cta-buttons"><a href="download/" class="btn btn-primary btn-large" data-download-kind="desktop" data-locale="en">Choose your download</a><a href="https://github.com/ismigar/Gnosi" class="btn btn-secondary btn-large" target="_blank" rel="noreferrer">View the source</a></div></div></section>
     </main>
 
     <footer class="gnosi-shell-footer"><div class="footer-content"><div class="footer-brand"><span class="brand"><span class="brand-logo">G</span><span class="logo">Gnosi</span></span><p>From source to manuscript, with your knowledge always yours.</p></div><div class="footer-links"><div class="footer-col"><h4>Project</h4><a href="https://github.com/ismigar/Gnosi" target="_blank" rel="noreferrer">GitHub</a><a href="changelog.html">Changelog</a><a href="/engineering/">Engineering documentation</a><a href="https://github.com/ismigar/Gnosi/issues" target="_blank" rel="noreferrer">Issues</a></div><div class="footer-col"><h4>Author</h4><a href="https://github.com/ismigar" target="_blank" rel="noreferrer">GitHub</a><a href="https://temenosismael.org" target="_blank" rel="noreferrer">Web</a></div><div class="footer-col"><h4>Legal</h4><a href="privacy.html">Privacy policy</a><a href="https://github.com/ismigar/Gnosi/blob/main/LICENSE" target="_blank" rel="noreferrer">AGPL-3.0 license</a></div></div></div><div class="footer-bottom"><p>© 2024–2026 Ismael Garcia Fernandez · Open-source project under the AGPL-3.0 license.</p></div></footer>

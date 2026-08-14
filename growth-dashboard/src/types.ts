@@ -25,6 +25,8 @@ export interface DashboardData {
     newAssetDownloadsInPeriod: number;
     installerDownloads: number;
     newInstallerDownloadsInPeriod: number;
+    downloadIntentClicks: number;
+    installerLinkClicks: number;
     connectorDownloads: number;
     updaterDownloads: number;
     otherDownloads: number;

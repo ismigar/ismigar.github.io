@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { translationKeyParity } from '../src/i18n';
+import { normalizeDashboardData } from '../src/normalize';
 import { extractPlatform, parseAlternativeTo } from '../worker/alternativeto';
 import worker, { csvRows } from '../worker/index';
 import {
@@ -120,6 +121,41 @@ describe('release asset deltas', () => {
 describe('dashboard localization', () => {
   it('keeps Catalan, Spanish, and English keys in parity', () => {
     expect(translationKeyParity()).toEqual([]);
+  });
+});
+
+describe('dashboard response compatibility', () => {
+  it('reconstructs the journey when an older worker response omits it', () => {
+    const normalized = normalizeDashboardData({
+      range: { from: '2026-08-01', to: '2026-08-14' },
+      timeline: [],
+      downloads: {
+        installerDownloads: 5,
+        newInstallerDownloadsInPeriod: 2,
+        byVersion: [],
+        byInstallerPlatform: [],
+        byAsset: [],
+      },
+      community: {},
+      alternativeTo: { outbound: 7 },
+      sponsors: {},
+      sources: [],
+    });
+
+    expect(normalized.journey).toEqual([
+      { id: 'alternativeto', value: 7 },
+      { id: 'repository', value: null },
+      { id: 'releases', value: null },
+      { id: 'downloads', value: 2 },
+    ]);
+    expect(normalized.downloads.downloadIntentClicks).toBe(0);
+    expect(normalized.downloads.installerLinkClicks).toBe(0);
+  });
+
+  it('rejects unrelated API error payloads instead of rendering false zeros', () => {
+    expect(() => normalizeDashboardData({ error: 'unauthorized' })).toThrow(
+      'incompatible response',
+    );
   });
 });
 
