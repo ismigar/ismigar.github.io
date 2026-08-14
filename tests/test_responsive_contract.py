@@ -89,6 +89,27 @@ class ResponsiveContractTests(unittest.TestCase):
                     source.index("docker compose up -d --build"),
                 )
 
+    def test_localized_video_uses_lightweight_accessible_playback(self):
+        expected_assets = {
+            "index.html": "gnosi-teaser-en.mp4",
+            "index.ca.html": "gnosi-teaser-ca.mp4",
+            "index.es.html": "gnosi-teaser-es.mp4",
+        }
+
+        for filename, video_asset in expected_assets.items():
+            source = (ROOT / filename).read_text(encoding="utf-8")
+            with self.subTest(filename=filename):
+                self.assertIn('id="demo"', source)
+                self.assertIn('href="#demo"', source)
+                self.assertIn('class="video-section"', source)
+                self.assertIn('controls playsinline preload="metadata"', source)
+                self.assertNotIn("<video autoplay", source)
+                self.assertIn(f'assets/video/{video_asset}', source)
+                self.assertIn(
+                    f'assets/video/{video_asset.replace(".mp4", ".jpg").replace("teaser-", "teaser-cover-")}',
+                    source,
+                )
+
     def test_analytics_distinguishes_desktop_downloads(self):
         source = (ROOT / "analytics.js").read_text(encoding="utf-8")
 
