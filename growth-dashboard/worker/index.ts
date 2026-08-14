@@ -1,10 +1,17 @@
 import { buildDashboard } from './metrics';
 import {
+  decideMarketplaceSubmission,
+  downloadMarketplaceSubmission,
+  listMarketplaceSubmissions,
+  submitMarketplacePackage,
+} from './marketplace';
+import {
   clearAuthCookies,
   createOAuthStateCookie,
   createSessionCookie,
   createSessionToken,
   isAuthorized,
+  readSession,
   stableHash,
   verifyOAuthState,
   verifyWebhookSignature,
@@ -406,6 +413,9 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   if (request.method === 'POST' && url.pathname === '/api/webhooks/github/sponsors') {
     return sponsorsWebhook(request, env);
   }
+  if (request.method === 'POST' && url.pathname === '/api/marketplace/submissions') {
+    return submitMarketplacePackage(request, env);
+  }
   if (!(await isAuthorized(request, env))) {
     if (url.pathname.startsWith('/api/')) return json({ error: 'Unauthorized' }, 401);
     return new Response(null, {
@@ -414,6 +424,27 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     });
   }
   if (request.method === 'GET' && url.pathname === '/api/dashboard') return dashboard(request, env);
+  if (request.method === 'GET' && url.pathname === '/api/marketplace/submissions') {
+    return listMarketplaceSubmissions(env);
+  }
+  const marketplacePackage = url.pathname.match(
+    /^\/api\/marketplace\/submissions\/([0-9a-f-]{36})\/package$/,
+  );
+  if (request.method === 'GET' && marketplacePackage) {
+    return downloadMarketplaceSubmission(env, marketplacePackage[1]);
+  }
+  const marketplaceDecision = url.pathname.match(
+    /^\/api\/marketplace\/submissions\/([0-9a-f-]{36})\/decision$/,
+  );
+  if (request.method === 'POST' && marketplaceDecision) {
+    const session = await readSession(request, env.SESSION_SECRET);
+    return decideMarketplaceSubmission(
+      request,
+      env,
+      marketplaceDecision[1],
+      session?.login ?? 'unknown',
+    );
+  }
   if (request.method === 'POST' && url.pathname === '/api/import/sponsors') {
     return importSponsors(request, env);
   }

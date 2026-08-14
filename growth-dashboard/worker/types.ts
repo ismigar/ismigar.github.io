@@ -15,6 +15,23 @@ export interface Env {
   GA4_PROPERTY_ID?: string;
   GA4_CLIENT_EMAIL?: string;
   GA4_PRIVATE_KEY?: string;
+  MARKETPLACE_SUBMISSION_TOKEN?: string;
+}
+
+export type MarketplaceSubmissionKind = 'plugin' | 'vault-template';
+
+export interface MarketplaceSubmissionRow {
+  id: string;
+  kind: MarketplaceSubmissionKind;
+  filename: string;
+  sha256: string;
+  size_bytes: number;
+  status: 'quarantined' | 'approved' | 'rejected';
+  metadata_json: string;
+  created_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  review_notes: string;
 }
 
 export interface AlternativeToMetrics {
