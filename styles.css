@@ -1728,6 +1728,78 @@ section,
   text-align: right;
 }
 
+.video-section {
+  align-items: center;
+  background:
+    radial-gradient(circle at 100% 0, rgba(133, 246, 211, 0.14), transparent 34%),
+    linear-gradient(145deg, #101d27, #09131c);
+  border: 1px solid rgba(133, 246, 211, 0.2);
+  border-radius: 28px;
+  color: #f6fbfe;
+  display: grid;
+  gap: clamp(34px, 6vw, 72px);
+  grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.28fr);
+  margin: 0 auto clamp(76px, 9vw, 118px);
+  overflow: hidden;
+  padding: clamp(32px, 5vw, 64px);
+}
+
+.video-copy h2 {
+  color: #f6fbfe;
+  font-size: clamp(2rem, 4vw, 3.55rem);
+  letter-spacing: -0.05em;
+  line-height: 1.04;
+}
+
+.video-copy > p {
+  color: #aec0cb;
+  font-size: 1rem;
+  line-height: 1.72;
+  margin-top: 20px;
+}
+
+.video-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 24px;
+}
+
+.video-notes span {
+  background: rgba(133, 246, 211, 0.08);
+  border: 1px solid rgba(133, 246, 211, 0.2);
+  border-radius: 999px;
+  color: #cfe9e1;
+  font-size: 0.75rem;
+  font-weight: 750;
+  padding: 7px 11px;
+}
+
+.video-frame {
+  background: #03080c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 30px 75px rgba(0, 0, 0, 0.38);
+  margin: 0;
+  overflow: hidden;
+}
+
+.video-frame video {
+  aspect-ratio: 16 / 9;
+  background: #07111d;
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.video-frame figcaption {
+  color: #90a8b6;
+  font-size: 0.74rem;
+  font-weight: 650;
+  padding: 11px 15px;
+  text-align: right;
+}
+
 .research-preview {
   background:
     radial-gradient(circle at 100% 0, rgba(133, 246, 211, 0.12), transparent 36%),
@@ -2128,6 +2200,7 @@ section,
 
 @media (max-width: 980px) {
   .research-hero,
+  .video-section,
   .ownership-section,
   .community-section {
     grid-template-columns: 1fr;
@@ -2149,6 +2222,7 @@ section,
 
 @media (max-width: 640px) {
   .research-hero,
+  .video-section,
   .workflow-section,
   .research-capabilities,
   .download-section,
@@ -2164,6 +2238,15 @@ section,
   .product-shot {
     border-radius: 20px;
     transform: none;
+  }
+
+  .video-section {
+    border-radius: 20px;
+    padding: 26px 18px 18px;
+  }
+
+  .video-frame {
+    border-radius: 14px;
   }
 
   .research-preview {
