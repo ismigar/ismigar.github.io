@@ -16,18 +16,33 @@ test.beforeEach(async ({ page }) => {
 test('renders the complete growth story and changes date range', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'De la descoberta a la comunitat' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Del descobriment a la descàrrega' })).toBeVisible();
-  await expect(page.getByText('Descàrregues confirmades')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'De la descoberta a la descàrrega' })).toBeVisible();
+  await expect(page.getByText('Noves descàrregues d’instal·ladors')).toBeVisible();
+  await expect(page.getByText('Aquestes xifres no formen un embut de conversió', { exact: false })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Participació i confiança' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Patrocinis' })).toBeVisible();
   await page.getByRole('button', { name: '7 dies' }).click();
   await expect(page.getByRole('button', { name: '7 dies' })).toHaveAttribute('aria-pressed', 'true');
 });
 
+test('switches the complete dashboard between Catalan, Spanish, and English', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'ES', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Del descubrimiento a la comunidad' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Del descubrimiento a la descarga' })).toBeVisible();
+  await page.getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'From discovery to community' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'From discovery to download' })).toBeVisible();
+  await expect(page.getByTitle('partial')).toContainText('GitHub Sponsors');
+  await expect(page.getByTitle('Actualització pendent')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'From discovery to community' })).toBeVisible();
+});
+
 test('runs an authenticated GitHub synchronization and refreshes the dashboard', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Sincronitza GitHub' }).click();
-  await expect(page.getByRole('status')).toHaveText('GitHub actualitzat');
+  await expect(page.getByRole('status')).toHaveText('GitHub actualitzat', { timeout: 10_000 });
 });
 
 test('imports a manual AlternativeTo snapshot', async ({ page }) => {

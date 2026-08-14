@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { demoData } from './demo';
+import {
+  dashboardLocales,
+  localeTags,
+  translate,
+  type DashboardLocale,
+} from './i18n';
 import type { DashboardData, TimelinePoint } from './types';
 
 type RangeKey = '7' | '30' | '90' | 'all';
@@ -7,6 +13,7 @@ type TimelineMetric = 'redirects' | 'repositoryViews' | 'releaseViews' | 'downlo
 
 const API_ORIGIN = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '');
 const SESSION_STORAGE_KEY = 'gnosi_growth_session';
+const LOCALE_STORAGE_KEY = 'gnosi_growth_locale';
 
 function captureStaticSession(): string {
   if (!API_ORIGIN) return '';
@@ -49,22 +56,29 @@ async function apiFetch(path: string, init: RequestInit = {}): Promise<Response>
   return response;
 }
 
-const ranges: Array<{ id: RangeKey; label: string }> = [
-  { id: '7', label: '7 dies' },
-  { id: '30', label: '30 dies' },
-  { id: '90', label: '90 dies' },
-  { id: 'all', label: 'Tot' },
-];
+const ranges: RangeKey[] = ['7', '30', '90', 'all'];
 
-const metricLabels: Record<TimelineMetric, string> = {
-  redirects: 'Clics AlternativeTo',
-  repositoryViews: 'Visites GitHub',
-  releaseViews: 'Visites releases',
-  downloads: 'Descàrregues',
-};
+function initialLocale(): DashboardLocale {
+  try {
+    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (dashboardLocales.includes(stored as DashboardLocale)) {
+      return stored as DashboardLocale;
+    }
+  } catch {
+    // Local storage can be unavailable in hardened browser modes.
+  }
+  const declared = document.documentElement.lang.slice(0, 2) as DashboardLocale;
+  if (dashboardLocales.includes(declared)) return declared;
+  const browserLocale = navigator.language.slice(0, 2) as DashboardLocale;
+  return dashboardLocales.includes(browserLocale) ? browserLocale : 'en';
+}
 
-function formatNumber(value: number, decimals = 0): string {
-  return new Intl.NumberFormat('ca-ES', {
+function formatNumber(
+  locale: DashboardLocale,
+  value: number,
+  decimals = 0,
+): string {
+  return new Intl.NumberFormat(localeTags[locale], {
     maximumFractionDigits: decimals,
     minimumFractionDigits: decimals,
   }).format(value);
@@ -100,38 +114,61 @@ function Icon({ name }: { name: string }) {
   );
 }
 
-function Delta({ value }: { value: number }) {
+function Delta({ value, locale }: { value: number; locale: DashboardLocale }) {
   const positive = value >= 0;
   return (
     <span className={`delta ${positive ? 'positive' : 'negative'}`}>
-      {positive ? '↑' : '↓'} {formatNumber(Math.abs(value), 1)}%
+      {positive ? '↑' : '↓'} {formatNumber(locale, Math.abs(value), 1)}%
     </span>
   );
 }
 
-function Funnel({ data }: { data: DashboardData }) {
-  const max = Math.max(...data.funnel.map((step) => step.value ?? 0), 1);
+function Journey({
+  data,
+  locale,
+}: {
+  data: DashboardData;
+  locale: DashboardLocale;
+}) {
+  const max = Math.max(...data.journey.map((step) => step.value ?? 0), 1);
+  const stepDetail = (id: string, value: number | null): string => {
+    if (id === 'repository' || id === 'releases') {
+      return value === null
+        ? translate(locale, 'journey.detail.unavailable')
+        : translate(locale, `journey.detail.${id}`);
+    }
+    if (id === 'downloads') {
+      return translate(locale, 'journey.detail.downloads', {
+        total: formatNumber(locale, data.downloads.installerDownloads),
+      });
+    }
+    return translate(locale, 'journey.detail.alternativeto');
+  };
   return (
     <section className="panel funnel-panel" aria-labelledby="funnel-title">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">Adquisició</span>
-          <h2 id="funnel-title">Del descobriment a la descàrrega</h2>
+          <span className="eyebrow">{translate(locale, 'journey.eyebrow')}</span>
+          <h2 id="funnel-title">{translate(locale, 'journey.title')}</h2>
         </div>
-        <span className="hint">Intenció → confirmació</span>
+        <span className="hint">{translate(locale, 'journey.hint')}</span>
       </div>
-      <div className="funnel" role="list" aria-label="Embut de conversió">
-        {data.funnel.map((step, index) => {
+      <div className="funnel" role="list" aria-label={translate(locale, 'journey.aria')}>
+        {data.journey.map((step, index) => {
           const width = step.value === null ? 52 : 52 + (step.value / max) * 48;
           return (
             <div className="funnel-row" role="listitem" key={step.id}>
               <div className="funnel-meta">
                 <span className="step-number">0{index + 1}</span>
                 <span>
-                  {step.label}
-                  {step.detail && <small className="step-detail">{step.detail}</small>}
+                  {translate(locale, `journey.${step.id}`)}
+                  <small className="step-detail">{stepDetail(step.id, step.value)}</small>
                 </span>
-                <strong>{step.value === null ? 'N/D' : formatNumber(step.value)}</strong>
+                <strong>
+                  {step.value === null
+                    ? translate(locale, 'common.na')
+                    : formatNumber(locale, step.value)}
+                </strong>
               </div>
               <div className="funnel-track">
                 <div
@@ -140,27 +177,25 @@ function Funnel({ data }: { data: DashboardData }) {
                   aria-hidden="true"
                 />
               </div>
-              {step.conversion !== null && (
-                <div className="conversion">
-                  <span>{formatNumber(step.conversion, 1)}%</span>
-                  <small>conversió</small>
-                </div>
-              )}
             </div>
           );
         })}
       </div>
       <div className="funnel-note">
         <Icon name="spark" />
-        <span>
-          Les 49 descàrregues prèvies formen la línia base. L’embut només atribueix com a noves els increments observats després de començar el seguiment.
-        </span>
+        <span>{translate(locale, 'journey.note')}</span>
       </div>
     </section>
   );
 }
 
-function TimelineChart({ points }: { points: TimelinePoint[] }) {
+function TimelineChart({
+  points,
+  locale,
+}: {
+  points: TimelinePoint[];
+  locale: DashboardLocale;
+}) {
   const [activeMetric, setActiveMetric] = useState<TimelineMetric>('downloads');
   const [selected, setSelected] = useState<number | null>(null);
   const values = points.map((point) => point[activeMetric]);
@@ -178,15 +213,20 @@ function TimelineChart({ points }: { points: TimelinePoint[] }) {
     })
     .join(' ');
   const area = `${path} L ${padding.x + plotWidth} ${padding.y + plotHeight} L ${padding.x} ${padding.y + plotHeight} Z`;
+  const metricLabels = Object.fromEntries(
+    (['redirects', 'repositoryViews', 'releaseViews', 'downloads'] as TimelineMetric[]).map(
+      (metric) => [metric, translate(locale, `metric.${metric}`)],
+    ),
+  ) as Record<TimelineMetric, string>;
 
   return (
     <section className="panel timeline-panel" aria-labelledby="timeline-title">
       <div className="section-heading timeline-heading">
         <div>
-          <span className="eyebrow">Tendència</span>
-          <h2 id="timeline-title">Evolució diària</h2>
+          <span className="eyebrow">{translate(locale, 'timeline.eyebrow')}</span>
+          <h2 id="timeline-title">{translate(locale, 'timeline.title')}</h2>
         </div>
-        <div className="metric-tabs" aria-label="Mètrica del gràfic">
+        <div className="metric-tabs" aria-label={translate(locale, 'timeline.metricAria')}>
           {(Object.keys(metricLabels) as TimelineMetric[]).map((metric) => (
             <button
               type="button"
@@ -205,7 +245,7 @@ function TimelineChart({ points }: { points: TimelinePoint[] }) {
       {points.length ? (
         <>
           <div className="chart-wrap">
-            <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${metricLabels[activeMetric]} per dia`}>
+            <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={translate(locale, 'timeline.perDay', { metric: metricLabels[activeMetric] })}>
               <defs>
                 <linearGradient id="area-fill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="var(--mint)" stopOpacity=".34" />
@@ -244,17 +284,17 @@ function TimelineChart({ points }: { points: TimelinePoint[] }) {
             </svg>
           </div>
           <div className="chart-caption">
-            <span>{new Intl.DateTimeFormat('ca-ES', { day: 'numeric', month: 'short' }).format(new Date(points[0].date))}</span>
+            <span>{new Intl.DateTimeFormat(localeTags[locale], { day: 'numeric', month: 'short' }).format(new Date(points[0].date))}</span>
             <strong>
               {selected === null
-                ? `${formatNumber(values.reduce((sum, value) => sum + value, 0))} en el període`
-                : `${new Intl.DateTimeFormat('ca-ES', { day: 'numeric', month: 'long' }).format(new Date(points[selected].date))}: ${formatNumber(points[selected][activeMetric])}`}
+                ? `${formatNumber(locale, values.reduce((sum, value) => sum + value, 0))} ${translate(locale, 'common.period')}`
+                : `${new Intl.DateTimeFormat(localeTags[locale], { day: 'numeric', month: 'long' }).format(new Date(points[selected].date))}: ${formatNumber(locale, points[selected][activeMetric])}`}
             </strong>
-            <span>{new Intl.DateTimeFormat('ca-ES', { day: 'numeric', month: 'short' }).format(new Date(points.at(-1)!.date))}</span>
+            <span>{new Intl.DateTimeFormat(localeTags[locale], { day: 'numeric', month: 'short' }).format(new Date(points.at(-1)!.date))}</span>
           </div>
         </>
       ) : (
-        <EmptyState label="Encara no hi ha dades per aquest període." />
+        <EmptyState label={translate(locale, 'timeline.empty')} />
       )}
     </section>
   );
@@ -263,10 +303,12 @@ function TimelineChart({ points }: { points: TimelinePoint[] }) {
 function BarList({
   title,
   items,
+  locale,
   limit = 5,
 }: {
   title: string;
   items: Array<{ label: string; value: number }>;
+  locale: DashboardLocale;
   limit?: number;
 }) {
   const visible = items.slice(0, limit);
@@ -280,7 +322,7 @@ function BarList({
             <div className="bar-item" key={item.label}>
               <div className="bar-label">
                 <span title={item.label}>{item.label}</span>
-                <strong>{formatNumber(item.value)}</strong>
+                <strong>{formatNumber(locale, item.value)}</strong>
               </div>
               <div className="bar-track">
                 <span style={{ width: `${(item.value / max) * 100}%` }} />
@@ -289,7 +331,7 @@ function BarList({
           ))}
         </div>
       ) : (
-        <EmptyState label="Sense descàrregues noves." compact />
+        <EmptyState label={translate(locale, 'bar.empty')} compact />
       )}
     </div>
   );
@@ -322,21 +364,24 @@ function EmptyState({ label, compact = false }: { label: string; compact?: boole
   return <div className={compact ? 'empty compact' : 'empty'}>{label}</div>;
 }
 
-function sourceStatusLabel(source: DashboardData['sources'][number]): string {
+function sourceStatusLabel(
+  source: DashboardData['sources'][number],
+  locale: DashboardLocale,
+): string {
   if (
     source.id === 'alternativeto' &&
     source.message.toLowerCase().includes('manual snapshot')
   ) {
-    return 'manual';
+    return translate(locale, 'source.manual');
   }
   if (source.status === 'degraded') {
     return source.id === 'alternativeto' && source.message.includes('403')
-      ? 'bloquejat'
-      : 'parcial';
+      ? translate(locale, 'source.blocked')
+      : translate(locale, 'source.partial');
   }
-  if (source.status === 'error') return 'error';
-  if (!source.lastSuccessAt) return 'pendent';
-  return new Intl.DateTimeFormat('ca-ES', { hour: '2-digit', minute: '2-digit' }).format(
+  if (source.status === 'error') return translate(locale, 'source.error');
+  if (!source.lastSuccessAt) return translate(locale, 'source.pending');
+  return new Intl.DateTimeFormat(localeTags[locale], { hour: '2-digit', minute: '2-digit' }).format(
     new Date(source.lastSuccessAt),
   );
 }
@@ -346,25 +391,33 @@ function SourceHealth({
   onSyncGitHub,
   syncing,
   syncMessage,
+  locale,
 }: {
   data: DashboardData;
   onSyncGitHub: () => void;
   syncing: boolean;
   syncMessage: string;
+  locale: DashboardLocale;
 }) {
   return (
-    <section className="source-strip" aria-label="Qualitat de les fonts">
+    <section className="source-strip" aria-label={translate(locale, 'source.aria')}>
       <div className="source-title">
         <span className="live-dot" />
-        <strong>Qualitat de dades</strong>
+        <strong>{translate(locale, 'source.title')}</strong>
       </div>
       <div className="source-actions">
         <div className="sources">
           {data.sources.map((source) => (
-            <div className="source" key={source.id} title={source.message || 'Font actualitzada'}>
+            <div
+              className="source"
+              key={source.id}
+              title={source.status === 'healthy'
+                ? translate(locale, 'source.updated')
+                : sourceStatusLabel(source, locale)}
+            >
               <span className={`status-dot ${source.status}`} />
               <span>{source.label}</span>
-              <small>{sourceStatusLabel(source)}</small>
+              <small>{sourceStatusLabel(source, locale)}</small>
             </div>
           ))}
         </div>
@@ -374,7 +427,7 @@ function SourceHealth({
           disabled={syncing}
           onClick={onSyncGitHub}
         >
-          {syncing ? 'Sincronitzant…' : 'Sincronitza GitHub'}
+          {syncing ? translate(locale, 'source.syncing') : translate(locale, 'source.sync')}
         </button>
         {syncMessage && (
           <span className="sync-message" role="status">
@@ -398,11 +451,13 @@ function AlternativeToPanel({
   importing,
   importMessage,
   onImport,
+  locale,
 }: {
   data: DashboardData;
   importing: boolean;
   importMessage: string;
   onImport: (snapshot: AlternativeToDraft) => Promise<boolean>;
+  locale: DashboardLocale;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<AlternativeToDraft>({
@@ -434,26 +489,26 @@ function AlternativeToPanel({
     <section className="panel alternative-panel">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">Descobriment</span>
+          <span className="eyebrow">{translate(locale, 'alternative.eyebrow')}</span>
           <h2>AlternativeTo</h2>
         </div>
         <div className="source-logo large">A</div>
       </div>
       <div className="rating">
-        <strong>{formatNumber(data.alternativeTo.rating, 1)}</strong>
+        <strong>{formatNumber(locale, data.alternativeTo.rating, 1)}</strong>
         <div>
-          <span className="stars" aria-label={`${data.alternativeTo.rating} de 5`}>★★★★★</span>
-          <small>{formatNumber(data.alternativeTo.reviews)} valoracions</small>
+          <span className="stars" aria-label={translate(locale, 'alternative.rating', { rating: data.alternativeTo.rating })}>★★★★★</span>
+          <small>{translate(locale, 'alternative.reviews', { count: formatNumber(locale, data.alternativeTo.reviews) })}</small>
         </div>
       </div>
       <div className="alt-metrics">
-        <div><strong>{formatNumber(data.alternativeTo.likes)}</strong><span>m’agrada</span></div>
-        <div><strong>{formatNumber(data.alternativeTo.comments)}</strong><span>comentaris</span></div>
-        <div><strong>{formatNumber(data.funnel[0]?.value ?? 0)}</strong><span>clics sortints</span></div>
+        <div><strong>{formatNumber(locale, data.alternativeTo.likes)}</strong><span>{translate(locale, 'alternative.likes')}</span></div>
+        <div><strong>{formatNumber(locale, data.alternativeTo.comments)}</strong><span>{translate(locale, 'alternative.comments')}</span></div>
+        <div><strong>{formatNumber(locale, data.journey[0]?.value ?? 0)}</strong><span>{translate(locale, 'alternative.outbound')}</span></div>
       </div>
       <div className="alt-import">
         <button type="button" className="sync-button" onClick={() => setEditing((value) => !value)}>
-          {editing ? 'Tanca l’edició' : 'Actualitza les dades'}
+          {editing ? translate(locale, 'alternative.close') : translate(locale, 'alternative.update')}
         </button>
         {editing && (
           <form
@@ -466,37 +521,38 @@ function AlternativeToPanel({
           >
             <div className="alt-import-grid">
               <label>
-                Likes
+                {translate(locale, 'alternative.likesField')}
                 <input type="number" min="0" step="1" value={draft.likes} onChange={(event) => updateDraft('likes', event.target.value)} />
               </label>
               <label>
-                Comentaris
+                {translate(locale, 'alternative.commentsField')}
                 <input type="number" min="0" step="1" value={draft.comments} onChange={(event) => updateDraft('comments', event.target.value)} />
               </label>
               <label>
-                Valoracions
+                {translate(locale, 'alternative.reviewsField')}
                 <input type="number" min="0" step="1" value={draft.reviews} onChange={(event) => updateDraft('reviews', event.target.value)} />
               </label>
               <label>
-                Puntuació
+                {translate(locale, 'alternative.ratingField')}
                 <input type="number" min="0" max="5" step="0.1" value={draft.rating} onChange={(event) => updateDraft('rating', event.target.value)} />
               </label>
             </div>
             <button type="submit" className="import-submit" disabled={importing}>
-              {importing ? 'Desant…' : 'Desa el snapshot'}
+              {importing ? translate(locale, 'alternative.saving') : translate(locale, 'alternative.save')}
             </button>
           </form>
         )}
         {importMessage && <span className="alt-import-message" role="status">{importMessage}</span>}
       </div>
       <a href="https://alternativeto.net/software/gnosi--your-digital-second-brain-/about/" target="_blank" rel="noreferrer">
-        Veure la fitxa <Icon name="arrow" />
+        {translate(locale, 'alternative.view')} <Icon name="arrow" />
       </a>
     </section>
   );
 }
 
 export default function App() {
+  const [locale, setLocale] = useState<DashboardLocale>(initialLocale);
   const [range, setRange] = useState<RangeKey>('30');
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -508,6 +564,16 @@ export default function App() {
   const [alternativeImportMessage, setAlternativeImportMessage] = useState('');
 
   useEffect(() => {
+    document.documentElement.lang = locale;
+    document.title = translate(locale, 'document.title');
+    try {
+      window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    } catch {
+      // Local storage can be unavailable in hardened browser modes.
+    }
+  }, [locale]);
+
+  useEffect(() => {
     const controller = new AbortController();
     const selectedRange = dateRange(range);
     setLoading(true);
@@ -517,7 +583,9 @@ export default function App() {
       headers: { Accept: 'application/json' },
     })
       .then(async (response) => {
-        if (!response.ok) throw new Error(`No s’han pogut carregar les dades (${response.status}).`);
+        if (!response.ok) {
+          throw new Error(translate(locale, 'error.load', { status: response.status }));
+        }
         return response.json() as Promise<DashboardData>;
       })
       .then((payload) => {
@@ -530,14 +598,18 @@ export default function App() {
           setData(demoData);
           setDemo(true);
         } else {
-          setError(reason instanceof Error ? reason.message : 'No s’han pogut carregar les dades.');
+          setError(
+            reason instanceof Error
+              ? reason.message
+              : translate(locale, 'error.loadGeneric'),
+          );
         }
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [range]);
+  }, [locale, range]);
 
   async function syncGitHubNow(): Promise<void> {
     const selectedRange = dateRange(range);
@@ -549,21 +621,21 @@ export default function App() {
         headers: { Accept: 'application/json' },
       });
       if (!syncResponse.ok) {
-        throw new Error(`No s’ha pogut sincronitzar GitHub (${syncResponse.status}).`);
+        throw new Error(translate(locale, 'error.sync', { status: syncResponse.status }));
       }
       const dashboardResponse = await apiFetch(
         `/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`,
         { headers: { Accept: 'application/json' } },
       );
       if (!dashboardResponse.ok) {
-        throw new Error(`GitHub s’ha sincronitzat, però no s’han pogut recarregar les dades.`);
+        throw new Error(translate(locale, 'error.syncReload'));
       }
       setData((await dashboardResponse.json()) as DashboardData);
       setDemo(false);
-      setSyncMessage('GitHub actualitzat');
+      setSyncMessage(translate(locale, 'status.githubUpdated'));
     } catch (reason: unknown) {
       setSyncMessage(
-        reason instanceof Error ? reason.message : 'No s’ha pogut sincronitzar GitHub.',
+        reason instanceof Error ? reason.message : translate(locale, 'error.syncGeneric'),
       );
     } finally {
       setSyncing(false);
@@ -581,22 +653,22 @@ export default function App() {
         body: JSON.stringify(snapshot),
       });
       if (!importResponse.ok) {
-        throw new Error(`No s’ha pogut importar AlternativeTo (${importResponse.status}).`);
+        throw new Error(translate(locale, 'error.import', { status: importResponse.status }));
       }
       const dashboardResponse = await apiFetch(
         `/api/dashboard?from=${selectedRange.from}&to=${selectedRange.to}`,
         { headers: { Accept: 'application/json' } },
       );
       if (!dashboardResponse.ok) {
-        throw new Error('Les dades s’han importat, però no s’han pogut recarregar.');
+        throw new Error(translate(locale, 'error.importReload'));
       }
       setData((await dashboardResponse.json()) as DashboardData);
       setDemo(false);
-      setAlternativeImportMessage('AlternativeTo actualitzat');
+      setAlternativeImportMessage(translate(locale, 'status.alternativeUpdated'));
       return true;
     } catch (reason: unknown) {
       setAlternativeImportMessage(
-        reason instanceof Error ? reason.message : 'No s’ha pogut importar AlternativeTo.',
+        reason instanceof Error ? reason.message : translate(locale, 'error.importGeneric'),
       );
       return false;
     } finally {
@@ -614,7 +686,7 @@ export default function App() {
       <main className="loading-screen">
         <div className="brand-mark">G</div>
         <div className="loader" />
-        <span>Preparant les mètriques…</span>
+        <span>{translate(locale, 'loading')}</span>
       </main>
     );
   }
@@ -623,10 +695,10 @@ export default function App() {
     return (
       <main className="error-screen">
         <div className="brand-mark">G</div>
-        <h1>No podem obrir el dashboard</h1>
+        <h1>{translate(locale, 'error.title')}</h1>
         <p>{error}</p>
         <button type="button" onClick={() => window.location.reload()}>
-          Torna-ho a provar
+          {translate(locale, 'error.retry')}
         </button>
       </main>
     );
@@ -639,25 +711,38 @@ export default function App() {
           <div className="brand-mark">G</div>
           <div>
             <strong>Gnosi</strong>
-            <span>Growth intelligence</span>
+            <span>{translate(locale, 'top.subtitle')}</span>
           </div>
         </div>
         <div className="top-actions">
-          {demo && <span className="demo-badge">Dades de mostra</span>}
-          <div className="range-switch" aria-label="Període">
-            {ranges.map((item) => (
+          {demo && <span className="demo-badge">{translate(locale, 'top.sample')}</span>}
+          <div className="locale-switch" aria-label={translate(locale, 'top.language')}>
+            {dashboardLocales.map((item) => (
               <button
                 type="button"
-                className={range === item.id ? 'active' : ''}
-                aria-pressed={range === item.id}
-                key={item.id}
-                onClick={() => setRange(item.id)}
+                className={locale === item ? 'active' : ''}
+                aria-pressed={locale === item}
+                key={item}
+                onClick={() => setLocale(item)}
               >
-                {item.label}
+                {item.toUpperCase()}
               </button>
             ))}
           </div>
-          <div className="avatar" aria-label="Compte d’Ismael">
+          <div className="range-switch" aria-label={translate(locale, 'top.period')}>
+            {ranges.map((item) => (
+              <button
+                type="button"
+                className={range === item ? 'active' : ''}
+                aria-pressed={range === item}
+                key={item}
+                onClick={() => setRange(item)}
+              >
+                {translate(locale, `range.${item}`)}
+              </button>
+            ))}
+          </div>
+          <div className="avatar" aria-label={translate(locale, 'top.account')}>
             IG
           </div>
         </div>
@@ -666,14 +751,15 @@ export default function App() {
       <main>
         <section className="hero-heading">
           <div>
-            <span className="eyebrow">Creixement · {data.range.from} — {data.range.to}</span>
-            <h1>De la descoberta a la comunitat</h1>
-            <p>Una lectura honesta de com Gnosi atrau, converteix i crea relacions.</p>
+            <span className="eyebrow">{translate(locale, 'hero.eyebrow', { from: data.range.from, to: data.range.to })}</span>
+            <h1>{translate(locale, 'hero.title')}</h1>
+            <p>{translate(locale, 'hero.description')}</p>
           </div>
           <div className="hero-stat">
-            <span>Descàrregues acumulades</span>
-            <strong>{formatNumber(data.downloads.total)}</strong>
-            <small>+{formatNumber(data.downloads.newInPeriod)} durant el període</small>
+            <span>{translate(locale, 'hero.installers')}</span>
+            <strong>{formatNumber(locale, data.downloads.installerDownloads)}</strong>
+            <small>{translate(locale, 'hero.periodDelta', { count: formatNumber(locale, data.downloads.newInstallerDownloadsInPeriod) })}</small>
+            <small>{translate(locale, 'hero.assetTotal', { count: formatNumber(locale, data.downloads.totalAssetDownloads) })}</small>
           </div>
         </section>
 
@@ -682,16 +768,17 @@ export default function App() {
           onSyncGitHub={() => void syncGitHubNow()}
           syncing={syncing}
           syncMessage={syncMessage}
+          locale={locale}
         />
 
         <div className="primary-grid">
-          <Funnel data={data} />
-          <TimelineChart points={data.timeline} />
+          <Journey data={data} locale={locale} />
+          <TimelineChart points={data.timeline} locale={locale} />
         </div>
 
         <section className="branch-intro">
           <div className="branch-line" />
-          <span>Què passa després de la descàrrega?</span>
+          <span>{translate(locale, 'branch')}</span>
           <div className="branch-line" />
         </section>
 
@@ -699,19 +786,19 @@ export default function App() {
           <section className="panel outcome-panel community-panel">
             <div className="section-heading">
               <div>
-                <span className="eyebrow">Comunitat</span>
-                <h2>Participació i confiança</h2>
+                <span className="eyebrow">{translate(locale, 'community.eyebrow')}</span>
+                <h2>{translate(locale, 'community.title')}</h2>
               </div>
               <div className="round-icon"><Icon name="users" /></div>
             </div>
             <div className="stat-grid">
-              <Stat label="Estrelles" value={formatNumber(data.community.stars)} detail={`${formatNumber(data.community.forks)} forks`} icon="spark" />
-              <Stat label="Issues resoltes" value={formatNumber(data.community.issuesClosed)} detail={`${formatNumber(data.community.issuesOpen)} obertes`} icon="issue" />
-              <Stat label="PR integrades" value={formatNumber(data.community.pullRequestsMerged)} detail={`${formatNumber(data.community.pullRequestsCreated)} creades`} icon="branch" />
-              <Stat label="Temps de resposta" value={`${formatNumber(data.community.medianIssueHours, 1)} h`} detail="mediana de resolució" icon="arrow" />
+              <Stat label={translate(locale, 'community.stars')} value={formatNumber(locale, data.community.stars)} detail={translate(locale, 'community.forks', { count: formatNumber(locale, data.community.forks) })} icon="spark" />
+              <Stat label={translate(locale, 'community.issues')} value={formatNumber(locale, data.community.issuesClosed)} detail={translate(locale, 'community.open', { count: formatNumber(locale, data.community.issuesOpen) })} icon="issue" />
+              <Stat label={translate(locale, 'community.prs')} value={formatNumber(locale, data.community.pullRequestsMerged)} detail={translate(locale, 'community.created', { count: formatNumber(locale, data.community.pullRequestsCreated) })} icon="branch" />
+              <Stat label={translate(locale, 'community.response')} value={`${formatNumber(locale, data.community.medianIssueHours, 1)} h`} detail={translate(locale, 'community.median')} icon="arrow" />
             </div>
             <div className="outcome-footer">
-              <span>{formatNumber(totalCommunity)} contribucions resoltes</span>
+              <span>{translate(locale, 'community.resolved', { count: formatNumber(locale, totalCommunity) })}</span>
               <span className="mini-progress"><i style={{ width: `${Math.min(100, totalCommunity * 4)}%` }} /></span>
             </div>
           </section>
@@ -719,31 +806,31 @@ export default function App() {
           <section className="panel outcome-panel sponsor-panel">
             <div className="section-heading">
               <div>
-                <span className="eyebrow">Sostenibilitat</span>
-                <h2>Patrocinis</h2>
+                <span className="eyebrow">{translate(locale, 'sponsor.eyebrow')}</span>
+                <h2>{translate(locale, 'sponsor.title')}</h2>
               </div>
               <div className="round-icon coral"><Icon name="heart" /></div>
             </div>
             <div className="money-row">
               <div>
-                <span>MRR actual</span>
-                <strong>${formatNumber(data.sponsors.mrr, 0)}</strong>
+                <span>{translate(locale, 'sponsor.mrr')}</span>
+                <strong>${formatNumber(locale, data.sponsors.mrr, 0)}</strong>
               </div>
               <div>
-                <span>Ingressos puntuals</span>
-                <strong>${formatNumber(data.sponsors.oneTimeRevenue, 0)}</strong>
+                <span>{translate(locale, 'sponsor.oneTime')}</span>
+                <strong>${formatNumber(locale, data.sponsors.oneTimeRevenue, 0)}</strong>
               </div>
             </div>
             <div className="sponsor-flow">
-              <div><strong>{formatNumber(data.sponsors.active)}</strong><span>actius</span></div>
+              <div><strong>{formatNumber(locale, data.sponsors.active)}</strong><span>{translate(locale, 'sponsor.active')}</span></div>
               <Icon name="arrow" />
-              <div><strong>+{formatNumber(data.sponsors.started)}</strong><span>altes</span></div>
+              <div><strong>+{formatNumber(locale, data.sponsors.started)}</strong><span>{translate(locale, 'sponsor.started')}</span></div>
               <Icon name="arrow" />
-              <div><strong>{formatNumber(data.sponsors.cancelled)}</strong><span>baixes</span></div>
+              <div><strong>{formatNumber(locale, data.sponsors.cancelled)}</strong><span>{translate(locale, 'sponsor.cancelled')}</span></div>
             </div>
             <div className="attribution">
               <span className="source-logo">A</span>
-              <span><strong>{formatNumber(data.sponsors.fromAlternativeTo)}</strong> patrocinis atribuïts a AlternativeTo</span>
+              <span>{translate(locale, 'sponsor.attribution', { count: formatNumber(locale, data.sponsors.fromAlternativeTo) })}</span>
             </div>
           </section>
         </div>
@@ -752,16 +839,21 @@ export default function App() {
           <section className="panel downloads-panel">
             <div className="section-heading">
               <div>
-                <span className="eyebrow">Distribució</span>
-                <h2>Què es descarrega?</h2>
-                <p>{formatNumber(data.downloads.installers)} instal·ladors · {formatNumber(data.downloads.extensions)} extensions i artefactes</p>
+                <span className="eyebrow">{translate(locale, 'downloads.eyebrow')}</span>
+                <h2>{translate(locale, 'downloads.title')}</h2>
+                <p>{translate(locale, 'downloads.summary', {
+                  installers: formatNumber(locale, data.downloads.installerDownloads),
+                  connectors: formatNumber(locale, data.downloads.connectorDownloads),
+                  updaters: formatNumber(locale, data.downloads.updaterDownloads),
+                  other: formatNumber(locale, data.downloads.otherDownloads),
+                })}</p>
               </div>
               <div className="round-icon"><Icon name="download" /></div>
             </div>
             <div className="bar-columns">
-              <BarList title="Per plataforma" items={data.downloads.byPlatform} />
-              <BarList title="Per versió" items={data.downloads.byVersion} />
-              <BarList title="Artefactes principals" items={data.downloads.byAsset} limit={4} />
+              <BarList title={translate(locale, 'downloads.platform')} items={data.downloads.byInstallerPlatform} locale={locale} />
+              <BarList title={translate(locale, 'downloads.version')} items={data.downloads.byVersion} locale={locale} />
+              <BarList title={translate(locale, 'downloads.assets')} items={data.downloads.byAsset} locale={locale} limit={4} />
             </div>
           </section>
 
@@ -770,6 +862,7 @@ export default function App() {
             importing={alternativeImporting}
             importMessage={alternativeImportMessage}
             onImport={importAlternativeToNow}
+            locale={locale}
           />
         </div>
       </main>
@@ -777,7 +870,9 @@ export default function App() {
       <footer>
         <span>Gnosi Growth Intelligence</span>
         <span>
-          Actualitzat {new Intl.DateTimeFormat('ca-ES', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(data.generatedAt))}
+          {translate(locale, 'footer.updated', {
+            date: new Intl.DateTimeFormat(localeTags[locale], { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(data.generatedAt)),
+          })}
         </span>
       </footer>
     </div>

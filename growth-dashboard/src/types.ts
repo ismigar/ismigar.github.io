@@ -1,9 +1,6 @@
-export interface FunnelStep {
+export interface JourneyStep {
   id: string;
-  label: string;
   value: number | null;
-  conversion: number | null;
-  detail?: string;
 }
 
 export interface TimelinePoint {
@@ -20,16 +17,19 @@ export interface TimelinePoint {
 
 export interface DashboardData {
   range: { from: string; to: string; previousFrom: string; previousTo: string };
-  funnel: FunnelStep[];
+  journey: JourneyStep[];
   timeline: TimelinePoint[];
   comparison: Record<string, number>;
   downloads: {
-    total: number;
-    newInPeriod: number;
-    installers: number;
-    extensions: number;
+    totalAssetDownloads: number;
+    newAssetDownloadsInPeriod: number;
+    installerDownloads: number;
+    newInstallerDownloadsInPeriod: number;
+    connectorDownloads: number;
+    updaterDownloads: number;
+    otherDownloads: number;
     byVersion: Array<{ label: string; value: number }>;
-    byPlatform: Array<{ label: string; value: number }>;
+    byInstallerPlatform: Array<{ label: string; value: number }>;
     byAsset: Array<{ label: string; value: number }>;
   };
   community: Record<string, number>;

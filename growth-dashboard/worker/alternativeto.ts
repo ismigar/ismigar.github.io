@@ -53,9 +53,9 @@ export function extractPlatform(assetName: string): string {
   const name = assetName.toLowerCase();
   if (name.includes('mac') || name.includes('darwin') || name.endsWith('.dmg')) return 'macOS';
   if (name.includes('win') || name.endsWith('.exe') || name.endsWith('.msi')) return 'Windows';
-  if (name.includes('linux') || name.endsWith('.appimage') || name.endsWith('.deb')) return 'Linux';
+  if (name.includes('linux') || name.endsWith('.appimage') || name.endsWith('.deb') || name.endsWith('.rpm')) return 'Linux';
   if (name.includes('clipper')) return 'Web Clipper';
   if (name.endsWith('.oxt')) return 'LibreOffice';
   if (name.includes('word') || name.endsWith('.xml')) return 'Microsoft Word';
-  return 'Altres';
+  return 'Other';
 }
