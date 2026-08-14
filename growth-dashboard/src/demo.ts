@@ -25,30 +25,31 @@ export const demoData: DashboardData = {
     previousFrom: points[0].date,
     previousTo: points[0].date,
   },
-  funnel: [
-    { id: 'alternativeto', label: 'Clics des d’AlternativeTo', value: 356, conversion: null },
-    { id: 'repository', label: 'Visites a GitHub', value: 274, conversion: 77 },
-    { id: 'releases', label: 'Visites a releases', value: 168, conversion: 61.3 },
-    { id: 'downloads', label: 'Descàrregues confirmades', value: 93, conversion: 55.4 },
+  journey: [
+    { id: 'alternativeto', value: 356 },
+    { id: 'repository', value: 274 },
+    { id: 'releases', value: 168 },
+    { id: 'downloads', value: 24 },
   ],
   timeline: points,
   comparison: { redirects: 24.6, repositoryViews: 18.2, releaseViews: 11.4, downloads: 31.0 },
   downloads: {
-    total: 93,
-    newInPeriod: 24,
-    installers: 80,
-    extensions: 13,
+    totalAssetDownloads: 126,
+    newAssetDownloadsInPeriod: 31,
+    installerDownloads: 80,
+    newInstallerDownloadsInPeriod: 24,
+    connectorDownloads: 23,
+    updaterDownloads: 19,
+    otherDownloads: 4,
     byVersion: [
       { label: 'v0.3.0', value: 58 },
       { label: 'v0.2.1', value: 24 },
       { label: 'v0.2.0', value: 11 },
     ],
-    byPlatform: [
+    byInstallerPlatform: [
       { label: 'macOS', value: 39 },
       { label: 'Windows', value: 27 },
       { label: 'Linux', value: 14 },
-      { label: 'Web Clipper', value: 8 },
-      { label: 'LibreOffice', value: 5 },
     ],
     byAsset: [
       { label: 'Gnosi-0.3.0-arm64.dmg', value: 31 },

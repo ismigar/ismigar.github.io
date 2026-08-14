@@ -56,22 +56,22 @@ export interface MetricPoint {
 
 export interface DashboardResponse {
   range: { from: string; to: string; previousFrom: string; previousTo: string };
-  funnel: Array<{
+  journey: Array<{
     id: string;
-    label: string;
     value: number | null;
-    conversion: number | null;
-    detail?: string;
   }>;
   timeline: MetricPoint[];
   comparison: Record<string, number>;
   downloads: {
-    total: number;
-    newInPeriod: number;
-    installers: number;
-    extensions: number;
+    totalAssetDownloads: number;
+    newAssetDownloadsInPeriod: number;
+    installerDownloads: number;
+    newInstallerDownloadsInPeriod: number;
+    connectorDownloads: number;
+    updaterDownloads: number;
+    otherDownloads: number;
     byVersion: Array<{ label: string; value: number }>;
-    byPlatform: Array<{ label: string; value: number }>;
+    byInstallerPlatform: Array<{ label: string; value: number }>;
     byAsset: Array<{ label: string; value: number }>;
   };
   community: Record<string, number>;

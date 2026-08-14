@@ -31,7 +31,9 @@
     const url = new URL(link.href);
     const hostname = url.hostname;
     let eventName = 'outbound_click';
-    if (hostname === window.location.hostname && url.pathname.startsWith('/go/github-sponsors/')) {
+    if (link.dataset.downloadKind === 'desktop') {
+      eventName = 'desktop_download_click';
+    } else if (hostname === window.location.hostname && url.pathname.startsWith('/go/github-sponsors/')) {
       eventName = 'github_sponsor_click';
     } else if (hostname === window.location.hostname && url.pathname.startsWith('/go/kofi/')) {
       eventName = 'ko_fi_click';
@@ -57,6 +59,8 @@
       link_url: link.href,
       link_text: link.textContent.trim().slice(0, 100),
       link_domain: hostname,
+      download_kind: link.dataset.downloadKind || undefined,
+      content_locale: link.dataset.locale || document.documentElement.lang || 'en',
     });
   });
 })();

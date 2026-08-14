@@ -51,7 +51,7 @@ class ResponsiveContractTests(unittest.TestCase):
             ("index.es.html", "ES"),
         ):
             source = (ROOT / filename).read_text(encoding="utf-8")
-            language_menu = source.split('<div class="lang-switch">', 1)[1].split(
+            language_menu = source.split('<div class="lang-switch"', 1)[1].split(
                 "</div>", 1
             )[0]
             with self.subTest(filename=filename):
@@ -61,6 +61,36 @@ class ResponsiveContractTests(unittest.TestCase):
                     f'<span class="active" aria-current="true">{locale}</span>',
                     language_menu,
                 )
+
+    def test_research_first_download_contract_is_localized(self):
+        expected_headlines = {
+            "index.html": "From source to manuscript, with your knowledge always yours.",
+            "index.ca.html": "De la font al manuscrit, amb el coneixement sempre teu.",
+            "index.es.html": "De la fuente al manuscrito, con el conocimiento siempre tuyo.",
+        }
+
+        for filename, headline in expected_headlines.items():
+            source = (ROOT / filename).read_text(encoding="utf-8")
+            locale = "en" if filename == "index.html" else filename[6:8]
+            with self.subTest(filename=filename):
+                self.assertIn(f"<h1>{headline}</h1>", source)
+                self.assertIn('href="#workflow"', source)
+                self.assertIn('href="#download"', source)
+                self.assertIn('id="community"', source)
+                self.assertIn('releases/latest?utm_source=gnosi-site', source)
+                self.assertIn('data-download-kind="desktop"', source)
+                self.assertIn(f'data-locale="{locale}"', source)
+                self.assertLess(
+                    source.index('class="download-card featured"'),
+                    source.index("docker compose up -d --build"),
+                )
+
+    def test_analytics_distinguishes_desktop_downloads(self):
+        source = (ROOT / "analytics.js").read_text(encoding="utf-8")
+
+        self.assertIn("link.dataset.downloadKind === 'desktop'", source)
+        self.assertIn("eventName = 'desktop_download_click'", source)
+        self.assertIn("content_locale", source)
 
     def test_navigation_tracks_the_visible_section(self):
         source = (ROOT / "navigation.js").read_text(encoding="utf-8")

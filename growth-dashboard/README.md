@@ -1,8 +1,9 @@
 # Gnosi Growth Dashboard
 
 Private growth intelligence for the Gnosi project. The dashboard separates the
-acquisition funnel from community and sponsorship outcomes, stores historical
-snapshots in D1, and runs entirely on Cloudflare's free tier.
+independent discovery and distribution signals from community and sponsorship
+outcomes, stores historical snapshots in D1, and runs entirely on Cloudflare's
+free tier. It is localized in Catalan, Spanish, and English.
 
 Current Worker URL:
 `https://gnosi-growth-dashboard.gnosi-ismigar-growth.workers.dev`
@@ -68,7 +69,13 @@ The AlternativeTo listing should link to one of:
 ## Data interpretation
 
 - Redirect events measure intent.
-- Release asset counter deltas measure confirmed downloads.
+- GitHub traffic, redirects, and release downloads use different attribution
+  models and windows. They are a journey overview, not a conversion funnel.
+- Release asset counter deltas measure confirmed asset downloads, not installs
+  or people.
+- Desktop installers are counted separately from Word/LibreOffice/Web Clipper
+  connectors, updater metadata, and other release artifacts.
+- The daily download series and headline use installer assets only.
 - GitHub traffic is snapshotted because the upstream window is fourteen days.
 - The first observed release counter is a baseline, not a new download.
 - No IP address or full user agent is stored.

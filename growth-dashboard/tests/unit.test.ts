@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { translationKeyParity } from '../src/i18n';
 import { extractPlatform, parseAlternativeTo } from '../worker/alternativeto';
 import worker, { csvRows } from '../worker/index';
-import { buildDashboard, calculateAssetDeltas } from '../worker/metrics';
+import {
+  buildDashboard,
+  calculateAssetDeltas,
+  classifyReleaseAsset,
+} from '../worker/metrics';
 import { normalizeAlternativeToSnapshot } from '../worker/sync';
 import {
   createOAuthStateCookie,
@@ -63,6 +68,58 @@ describe('release asset deltas', () => {
     expect(extractPlatform('Gnosi-arm64.dmg')).toBe('macOS');
     expect(extractPlatform('Gnosi-Setup.exe')).toBe('Windows');
     expect(extractPlatform('gnosi-cite.oxt')).toBe('LibreOffice');
+    expect(classifyReleaseAsset('Gnosi-1.0.0-arm64.dmg')).toBe('installer');
+    expect(classifyReleaseAsset('Gnosi-1.0.0-mac.zip')).toBe('installer');
+    expect(classifyReleaseAsset('gnosi-cite.oxt')).toBe('connector');
+    expect(classifyReleaseAsset('gnosi-word-addin-manifest.xml')).toBe('connector');
+    expect(classifyReleaseAsset('latest-mac.yml')).toBe('updater');
+    expect(classifyReleaseAsset('Gnosi-1.0.0.dmg.blockmap')).toBe('updater');
+    expect(classifyReleaseAsset('checksums.txt')).toBe('other');
+  });
+
+  it('separates installer, connector, updater, and other download totals', () => {
+    const assets = [
+      [1, 'Gnosi-1.0.0.dmg', 10, 14],
+      [2, 'latest-mac.yml', 8, 9],
+      [3, 'gnosi-cite.oxt', 4, 6],
+      [4, 'checksums.txt', 1, 2],
+    ].flatMap(([assetId, assetName, first, second]) => [
+      { asset_id: Number(assetId), release_tag: 'v1.0.0', asset_name: String(assetName), captured_at: '2026-07-01T00:00:00Z', period_date: '2026-07-01', download_count: Number(first) },
+      { asset_id: Number(assetId), release_tag: 'v1.0.0', asset_name: String(assetName), captured_at: '2026-07-02T00:00:00Z', period_date: '2026-07-02', download_count: Number(second) },
+    ]);
+    const dashboard = buildDashboard(
+      [],
+      [],
+      assets,
+      new Map(),
+      [],
+      [{ source: 'github', status: 'healthy', last_success_at: '2026-07-02T12:00:00Z', message: '' }],
+      '2026-07-01',
+      '2026-07-02',
+      '2026-06-29',
+      '2026-06-30',
+    );
+
+    expect(dashboard.downloads).toMatchObject({
+      totalAssetDownloads: 31,
+      newAssetDownloadsInPeriod: 8,
+      installerDownloads: 14,
+      newInstallerDownloadsInPeriod: 4,
+      connectorDownloads: 6,
+      updaterDownloads: 9,
+      otherDownloads: 2,
+    });
+    expect(dashboard.downloads.byInstallerPlatform).toEqual([
+      { label: 'macOS', value: 14 },
+    ]);
+    expect(dashboard.journey[3]).toEqual({ id: 'downloads', value: 4 });
+    expect(dashboard.timeline.map((point) => point.downloads)).toEqual([0, 4]);
+  });
+});
+
+describe('dashboard localization', () => {
+  it('keeps Catalan, Spanish, and English keys in parity', () => {
+    expect(translationKeyParity()).toEqual([]);
   });
 });
 
@@ -90,16 +147,8 @@ describe('GitHub traffic semantics', () => {
       '2026-07-26',
     );
 
-    expect(dashboard.funnel[1]).toMatchObject({
-      value: 2,
-      conversion: null,
-      detail: 'Inclou visites prèvies al redirect rastrejat · 14 dies',
-    });
-    expect(dashboard.funnel[2]).toMatchObject({
-      value: 3,
-      conversion: null,
-      detail: 'Tot GitHub · finestra mòbil de 14 dies',
-    });
+    expect(dashboard.journey[1]).toEqual({ id: 'repository', value: 2 });
+    expect(dashboard.journey[2]).toEqual({ id: 'releases', value: 3 });
     expect(dashboard.comparison.repositoryViews).toBe(100);
     expect(dashboard.timeline.map((point) => point.releaseViews)).toEqual([2, 3]);
   });
