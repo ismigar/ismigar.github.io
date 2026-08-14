@@ -69,6 +69,9 @@ The AlternativeTo listing should link to one of:
 ## Data interpretation
 
 - Redirect events measure intent.
+- `desktop_download_click` measures visits from the landing CTA to the platform
+  chooser; `installer_download_click` measures a platform-specific asset click.
+  Neither is treated as a confirmed download.
 - GitHub traffic, redirects, and release downloads use different attribution
   models and windows. They are a journey overview, not a conversion funnel.
 - Release asset counter deltas measure confirmed asset downloads, not installs
@@ -79,3 +82,12 @@ The AlternativeTo listing should link to one of:
 - GitHub traffic is snapshotted because the upstream window is fourteen days.
 - The first observed release counter is a baseline, not a new download.
 - No IP address or full user agent is stored.
+
+## Response compatibility
+
+The static shell normalizes dashboard responses before rendering. A Worker
+response from the previous contract that omits `journey` is reconstructed from
+the available download and AlternativeTo fields, while unrelated or incomplete
+error payloads produce the explicit error screen. Never pass unchecked API JSON
+directly into the React state: a staggered Pages/Worker deployment must not turn
+the private dashboard into a blank page.

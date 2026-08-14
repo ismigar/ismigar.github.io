@@ -462,6 +462,8 @@ export async function syncGa4(env: Env): Promise<void> {
                   'github_repo_click',
                   'github_release_click',
                   'github_sponsor_click',
+                  'desktop_download_click',
+                  'installer_download_click',
                 ],
               },
             },
@@ -482,6 +484,8 @@ export async function syncGa4(env: Env): Promise<void> {
       github_repo_click: 'repository_clicks',
       github_release_click: 'release_views',
       github_sponsor_click: 'sponsor_clicks',
+      desktop_download_click: 'download_intents',
+      installer_download_click: 'installer_link_clicks',
     };
     const capturedAt = now();
     for (const row of report.rows ?? []) {

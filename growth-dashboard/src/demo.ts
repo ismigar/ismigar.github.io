@@ -38,6 +38,8 @@ export const demoData: DashboardData = {
     newAssetDownloadsInPeriod: 31,
     installerDownloads: 80,
     newInstallerDownloadsInPeriod: 24,
+    downloadIntentClicks: 42,
+    installerLinkClicks: 29,
     connectorDownloads: 23,
     updaterDownloads: 19,
     otherDownloads: 4,

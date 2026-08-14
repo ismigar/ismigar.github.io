@@ -6,6 +6,7 @@ import {
   translate,
   type DashboardLocale,
 } from './i18n';
+import { normalizeDashboardData } from './normalize';
 import type { DashboardData, TimelinePoint } from './types';
 
 type RangeKey = '7' | '30' | '90' | 'all';
@@ -586,10 +587,10 @@ export default function App() {
         if (!response.ok) {
           throw new Error(translate(locale, 'error.load', { status: response.status }));
         }
-        return response.json() as Promise<DashboardData>;
+        return response.json() as Promise<unknown>;
       })
       .then((payload) => {
-        setData(payload);
+        setData(normalizeDashboardData(payload));
         setDemo(false);
       })
       .catch((reason: unknown) => {
@@ -630,7 +631,7 @@ export default function App() {
       if (!dashboardResponse.ok) {
         throw new Error(translate(locale, 'error.syncReload'));
       }
-      setData((await dashboardResponse.json()) as DashboardData);
+      setData(normalizeDashboardData(await dashboardResponse.json()));
       setDemo(false);
       setSyncMessage(translate(locale, 'status.githubUpdated'));
     } catch (reason: unknown) {
@@ -662,7 +663,7 @@ export default function App() {
       if (!dashboardResponse.ok) {
         throw new Error(translate(locale, 'error.importReload'));
       }
-      setData((await dashboardResponse.json()) as DashboardData);
+      setData(normalizeDashboardData(await dashboardResponse.json()));
       setDemo(false);
       setAlternativeImportMessage(translate(locale, 'status.alternativeUpdated'));
       return true;
@@ -760,6 +761,10 @@ export default function App() {
             <strong>{formatNumber(locale, data.downloads.installerDownloads)}</strong>
             <small>{translate(locale, 'hero.periodDelta', { count: formatNumber(locale, data.downloads.newInstallerDownloadsInPeriod) })}</small>
             <small>{translate(locale, 'hero.assetTotal', { count: formatNumber(locale, data.downloads.totalAssetDownloads) })}</small>
+            <small>{translate(locale, 'hero.downloadClicks', {
+              intents: formatNumber(locale, data.downloads.downloadIntentClicks),
+              installers: formatNumber(locale, data.downloads.installerLinkClicks),
+            })}</small>
           </div>
         </section>
 

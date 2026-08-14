@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gnosi — De la font al manuscrit, amb el coneixement sempre teu</title>
     <meta name="description" content="Gnosi és un espai de recerca local-first i de codi obert que connecta fonts, evidències, notes i cites verificables sense tancar el teu coneixement en un SaaS." />
+    <meta name="theme-color" content="#101d27" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ca_ES" />
+    <meta property="og:title" content="Gnosi — De la font al manuscrit" />
+    <meta property="og:description" content="Un espai local-first i de codi obert per a fonts, notes, evidències i cites verificables." />
+    <meta property="og:url" content="https://gnosi.temenosismael.org/index.ca.html" />
+    <meta property="og:image" content="https://gnosi.temenosismael.org/assets/gnosi-app-dashboard-ca.png" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="720" />
+    <meta property="og:image:alt" content="L’aplicació real de Gnosi mostrant l’espai local de coneixement" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Gnosi — De la font al manuscrit" />
+    <meta name="twitter:description" content="Un espai local-first i de codi obert per a fonts, notes, evidències i cites verificables." />
+    <meta name="twitter:image" content="https://gnosi.temenosismael.org/assets/gnosi-app-dashboard-ca.png" />
     <link rel="canonical" href="https://gnosi.temenosismael.org/index.ca.html" />
     <link rel="alternate" hreflang="en" href="https://gnosi.temenosismael.org/" />
     <link rel="alternate" hreflang="ca" href="https://gnosi.temenosismael.org/index.ca.html" />
@@ -15,6 +29,9 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <script src="analytics.js"></script>
     <script src="navigation.js" defer></script>
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Gnosi","applicationCategory":"EducationalApplication","operatingSystem":"macOS, Windows, Linux","url":"https://gnosi.temenosismael.org/index.ca.html","downloadUrl":"https://gnosi.temenosismael.org/download/index.ca.html","license":"https://www.gnu.org/licenses/agpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}
+    </script>
     <script>
       (function () {
         var language = navigator.language || navigator.userLanguage || "en";
@@ -31,7 +48,7 @@
     <nav class="navbar" aria-label="Navegació principal">
       <div class="nav-container">
         <a href="#top" class="brand" aria-label="Inici de Gnosi"><span class="brand-logo">G</span><span class="logo">Gnosi</span></a>
-        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" aria-label="Obre la navegació"><span class="nav-toggle-icon" aria-hidden="true"></span></button>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" aria-label="Obre la navegació" data-label-open="Obre la navegació" data-label-close="Tanca la navegació"><span class="nav-toggle-icon" aria-hidden="true"></span></button>
         <div class="nav-links" id="site-navigation">
           <a href="#workflow">Flux de recerca</a>
           <a href="#why-gnosi">Per què Gnosi</a>
@@ -52,23 +69,17 @@
         <div class="hero-content">
           <span class="badge agpl">Local-first · Codi obert · AGPL-3.0</span>
           <h1>De la font al manuscrit, amb el coneixement sempre teu.</h1>
-          <p class="subtitle">Gnosi reuneix les teves fonts, anotacions, notes connectades, estructura de projecte i cites en un únic espai de recerca sobirà. Els arxius continuen sent Markdown portable, no files atrapades al núvol d’una altra empresa.</p>
+          <p class="subtitle">Llegeix, anota, connecta i cita PDF, webs i llibres dins d’un únic espai local. Les notes i les dades continuen sent Markdown portable.</p>
           <div class="hero-cta">
-            <a href="https://github.com/ismigar/Gnosi/releases/latest?utm_source=gnosi-site&amp;utm_medium=landing&amp;utm_campaign=community-release&amp;utm_content=hero-ca" class="btn btn-primary" target="_blank" rel="noreferrer" data-download-kind="desktop" data-locale="ca">Descarrega l’aplicació d’escriptori</a>
+            <a href="download/index.ca.html" class="btn btn-primary" data-download-kind="desktop" data-locale="ca">Tria la teva descàrrega</a>
             <a href="#workflow" class="btn btn-secondary">Mira el flux de recerca</a>
           </div>
-          <div class="trust-row" aria-label="Garanties del projecte"><span>✓ Els teus arxius</span><span>✓ Formats oberts</span><span>✓ Cap núvol obligatori</span></div>
+          <div class="trust-row" aria-label="Garanties del projecte"><span>✓ Els teus arxius</span><span>✓ Formats oberts</span><span>✓ Sense compte ni subscripció</span></div>
         </div>
-        <div class="research-preview" aria-label="Vista prèvia del flux de recerca de Gnosi">
-          <div class="preview-top"><span class="preview-dot"></span><strong>Espai de recerca</strong><small>vault local</small></div>
-          <div class="preview-step"><span class="preview-icon">01</span><div><small>Font</small><strong>PDF · EPUB · Web · Àudio</strong></div></div>
-          <div class="preview-link"></div>
-          <div class="preview-step"><span class="preview-icon">02</span><div><small>Evidència</small><strong>Citació + pàgina + procedència</strong></div></div>
-          <div class="preview-link"></div>
-          <div class="preview-step"><span class="preview-icon">03</span><div><small>Coneixement</small><strong>[[Nota de lectura connectada]]</strong></div></div>
-          <div class="preview-link"></div>
-          <div class="preview-step is-accent"><span class="preview-icon">04</span><div><small>Escriptura</small><strong>[@font] → Word / LibreOffice</strong></div></div>
-        </div>
+        <figure class="product-shot">
+          <img src="assets/gnosi-app-dashboard-ca.png" width="1280" height="720" alt="L’aplicació real de Gnosi amb un vault local, el graf de coneixement, contactes, correu, calendari i lector de feeds" fetchpriority="high" />
+          <figcaption>Interfície real de Gnosi</figcaption>
+        </figure>
       </section>
 
       <section id="why-gnosi" class="problem research-problem">
@@ -100,7 +111,7 @@
           <article><span class="capability-mark">B</span><h3>Les notes també poden ser dades</h3><p>Les pàgines Markdown incorporen camps tipats, relacions, fórmules, agregacions i vistes de taula, galeria, tauler, calendari o cronologia.</p></article>
           <article><span class="capability-mark">C</span><h3>La IA continua havent de retre comptes</h3><p>Utilitza models locals o al núvol per ingerir i cercar material, mantenint visible la procedència i la síntesi permanent sota control humà.</p></article>
         </div>
-        <details class="more-capabilities"><summary>Explora l’ecosistema més ampli de Gnosi</summary><div><span>Graf de coneixement</span><span>Planificació de recerca</span><span>RSS i butlletins</span><span>IA multiproveïdor</span><span>Eines MCP</span><span>Connectors</span><span>Correu i calendari</span><span>Traducció i publicació</span></div></details>
+        <details class="more-capabilities"><summary>Explora l’ecosistema més ampli de Gnosi</summary><div><span>Graf de coneixement</span><span>Planificació de recerca</span><span>RSS i butlletins</span><span>IA multiproveïdor</span><span>Importació de Notion</span><span>Connectors</span><span>Correu i calendari</span><span>Traducció i publicació</span></div></details>
       </section>
 
       <section class="ownership-section">
@@ -111,7 +122,7 @@
       <section id="download" class="download-section">
         <div class="section-header"><span class="section-kicker">Prova Gnosi</span><h2>Primer l’aplicació d’escriptori. Allotja-la tu mateix quan ho necessitis.</h2><p>El camí més ràpid és la versió d’escriptori. Els desplegaments natiu i Docker continuen disponibles per a usuaris tècnics i servidors.</p></div>
         <div class="download-grid">
-          <article class="download-card featured"><span class="download-label">Recomanat</span><div class="download-icon">G</div><h3>Aplicació d’escriptori</h3><p>El backend ja ve inclòs. Descarrega la versió més recent per a macOS, Windows o Linux i obre un vault local.</p><a href="https://github.com/ismigar/Gnosi/releases/latest?utm_source=gnosi-site&amp;utm_medium=landing&amp;utm_campaign=community-release&amp;utm_content=download-ca" class="btn btn-primary" target="_blank" rel="noreferrer" data-download-kind="desktop" data-locale="ca">Obre la darrera versió</a><small>Les versions beta encara no estan signades. A macOS, fes clic dret → Obrir la primera vegada.</small></article>
+          <article class="download-card featured"><span class="download-label">Recomanat</span><div class="download-icon">G</div><h3>Aplicació d’escriptori</h3><p>El backend ja ve inclòs. Tria macOS, Windows o Linux sense haver de buscar entre els fitxers d’una release.</p><a href="download/index.ca.html" class="btn btn-primary" data-download-kind="desktop" data-locale="ca">Tria macOS, Windows o Linux</a><small>Les versions beta encara no estan signades. A macOS, fes clic dret → Obrir la primera vegada.</small></article>
           <article class="download-card"><span class="download-label">Per al desenvolupament</span><h3>Execució nativa</h3><p>Utilitza Python i Node directament a l’amfitrió. És el flux recomanat per a l’autoallotjament i les contribucions.</p><pre><code>git clone git@github.com:ismigar/Gnosi.git
 cd Gnosi/apps/gnosi</code></pre><a href="https://github.com/ismigar/Gnosi#quick-start" target="_blank" rel="noreferrer">Consulta la guia d’instal·lació nativa →</a></article>
           <article class="download-card"><span class="download-label">Per a servidors</span><h3>Desplegament amb Docker</h3><p>Utilitza el desplegament tot-en-un compatible quan una instal·lació en contenidors encaixi millor al servidor.</p><pre><code>docker compose up -d --build</code></pre><a href="https://github.com/ismigar/Gnosi#run-with-docker-optional" target="_blank" rel="noreferrer">Consulta la guia de Docker →</a></article>
@@ -123,7 +134,7 @@ cd Gnosi/apps/gnosi</code></pre><a href="https://github.com/ismigar/Gnosi#quick-
         <aside class="feedback-card"><span>Comentaris útils</span><h3>Digues-nos on es trenca la cadena</h3><ol><li>Has pogut instal·lar i obrir Gnosi?</li><li>Has pogut incorporar una font real?</li><li>Has pogut tornar d’una nota a la seva evidència?</li><li>Has pogut citar o exportar el resultat?</li></ol></aside>
       </section>
 
-      <section id="start" class="cta research-cta"><div class="cta-content"><span class="section-kicker">Sense compte. Sense subscripció.</span><h2>Porta una font des de la lectura fins a la citació.</h2><p>Fes servir la plantilla oficial de recerca multilingüe per veure el flux i després substitueix l’exemple pel teu material.</p><div class="cta-buttons"><a href="https://github.com/ismigar/Gnosi/releases/latest?utm_source=gnosi-site&amp;utm_medium=landing&amp;utm_campaign=community-release&amp;utm_content=final-ca" class="btn btn-primary btn-large" target="_blank" rel="noreferrer" data-download-kind="desktop" data-locale="ca">Descarrega Gnosi</a><a href="https://github.com/ismigar/Gnosi" class="btn btn-secondary btn-large" target="_blank" rel="noreferrer">Consulta el codi</a></div></div></section>
+      <section id="start" class="cta research-cta"><div class="cta-content"><span class="section-kicker">Sense compte. Sense subscripció.</span><h2>Porta una font des de la lectura fins a la citació.</h2><p>Comença amb un vault local i incorpora una font real. Les notes, els enllaços i les cites continuaran sent fitxers sota el teu control.</p><div class="cta-buttons"><a href="download/index.ca.html" class="btn btn-primary btn-large" data-download-kind="desktop" data-locale="ca">Tria la teva descàrrega</a><a href="https://github.com/ismigar/Gnosi" class="btn btn-secondary btn-large" target="_blank" rel="noreferrer">Consulta el codi</a></div></div></section>
     </main>
 
     <footer class="gnosi-shell-footer"><div class="footer-content"><div class="footer-brand"><span class="brand"><span class="brand-logo">G</span><span class="logo">Gnosi</span></span><p>De la font al manuscrit, amb el coneixement sempre teu.</p></div><div class="footer-links"><div class="footer-col"><h4>Projecte</h4><a href="https://github.com/ismigar/Gnosi" target="_blank" rel="noreferrer">GitHub</a><a href="changelog.ca.html">Canvis</a><a href="/engineering/ca/">Documentació d’enginyeria</a><a href="https://github.com/ismigar/Gnosi/issues" target="_blank" rel="noreferrer">Incidències</a></div><div class="footer-col"><h4>Autor</h4><a href="https://github.com/ismigar" target="_blank" rel="noreferrer">GitHub</a><a href="https://temenosismael.org" target="_blank" rel="noreferrer">Web</a></div><div class="footer-col"><h4>Legal</h4><a href="privacy.html">Política de privacitat</a><a href="https://github.com/ismigar/Gnosi/blob/main/LICENSE" target="_blank" rel="noreferrer">Llicència AGPL-3.0</a></div></div></div><div class="footer-bottom"><p>© 2024–2026 Ismael Garcia Fernandez · Projecte de codi obert sota la llicència AGPL-3.0.</p></div></footer>

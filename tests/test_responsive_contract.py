@@ -25,6 +25,7 @@ class ResponsiveContractTests(unittest.TestCase):
                 self.assertIn('aria-expanded="false"', source)
                 self.assertIn('aria-controls="site-navigation"', source)
                 self.assertIn(f'aria-label="{accessible_name}"', source)
+                self.assertIn('data-label-close=', source)
                 self.assertIn('id="site-navigation"', source)
 
     def test_navigation_script_supports_keyboard_and_viewport_changes(self):
@@ -33,6 +34,7 @@ class ResponsiveContractTests(unittest.TestCase):
         self.assertIn('event.key === "Escape"', source)
         self.assertIn('matchMedia("(min-width: 769px)")', source)
         self.assertIn('toggle.setAttribute("aria-expanded"', source)
+        self.assertIn('toggle.dataset.labelClose', source)
 
     def test_styles_define_fluid_grids_and_touch_targets(self):
         page_styles = (ROOT / "styles.css").read_text(encoding="utf-8")
@@ -77,7 +79,9 @@ class ResponsiveContractTests(unittest.TestCase):
                 self.assertIn('href="#workflow"', source)
                 self.assertIn('href="#download"', source)
                 self.assertIn('id="community"', source)
-                self.assertIn('releases/latest?utm_source=gnosi-site', source)
+                self.assertIn('class="product-shot"', source)
+                self.assertIn('assets/gnosi-app-dashboard-ca.png', source)
+                self.assertIn('href="download/', source)
                 self.assertIn('data-download-kind="desktop"', source)
                 self.assertIn(f'data-locale="{locale}"', source)
                 self.assertLess(
@@ -90,7 +94,24 @@ class ResponsiveContractTests(unittest.TestCase):
 
         self.assertIn("link.dataset.downloadKind === 'desktop'", source)
         self.assertIn("eventName = 'desktop_download_click'", source)
+        self.assertIn("eventName = 'installer_download_click'", source)
+        self.assertIn("download_platform", source)
         self.assertIn("content_locale", source)
+
+    def test_download_chooser_is_localized_and_platform_specific(self):
+        for filename in ("index.html", "index.ca.html", "index.es.html"):
+            source = (ROOT / "download" / filename).read_text(encoding="utf-8")
+            with self.subTest(filename=filename):
+                self.assertIn('data-release-asset="mac-arm"', source)
+                self.assertIn('data-release-asset="mac-intel"', source)
+                self.assertIn('data-release-asset="windows"', source)
+                self.assertIn('data-release-asset="linux"', source)
+                self.assertEqual(source.count('data-download-kind="installer"'), 4)
+                self.assertIn('id="release-status"', source)
+
+        script = (ROOT / "download.js").read_text(encoding="utf-8")
+        self.assertIn("api.github.com/repos/ismigar/Gnosi/releases/latest", script)
+        self.assertIn("browser_download_url", script)
 
     def test_navigation_tracks_the_visible_section(self):
         source = (ROOT / "navigation.js").read_text(encoding="utf-8")

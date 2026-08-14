@@ -122,6 +122,8 @@ export function buildDashboard(
     .filter((row) => row.period_date >= previousFrom && row.period_date <= previousTo)
     .filter((row) => classifyReleaseAsset(row.asset_name) === 'installer')
     .reduce((sum, row) => sum + row.delta, 0);
+  const downloadIntentClicks = sumMetric(currentRows, 'download_intents');
+  const installerLinkClicks = sumMetric(currentRows, 'installer_link_clicks');
 
   const dates = new Set<string>();
   currentRows.forEach((row) => dates.add(row.period_date));
@@ -231,6 +233,8 @@ export function buildDashboard(
       newAssetDownloadsInPeriod,
       installerDownloads,
       newInstallerDownloadsInPeriod,
+      downloadIntentClicks,
+      installerLinkClicks,
       connectorDownloads,
       updaterDownloads,
       otherDownloads,

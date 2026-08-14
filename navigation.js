@@ -10,12 +10,19 @@
   const closeNavigation = () => {
     navbar.classList.remove("is-open");
     toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", toggle.dataset.labelOpen || toggle.getAttribute("aria-label"));
   };
 
   toggle.addEventListener("click", () => {
     const expanded = toggle.getAttribute("aria-expanded") === "true";
     navbar.classList.toggle("is-open", !expanded);
     toggle.setAttribute("aria-expanded", String(!expanded));
+    toggle.setAttribute(
+      "aria-label",
+      !expanded
+        ? toggle.dataset.labelClose || toggle.getAttribute("aria-label")
+        : toggle.dataset.labelOpen || toggle.getAttribute("aria-label"),
+    );
   });
 
   navigation.addEventListener("click", (event) => {
