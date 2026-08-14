@@ -97,6 +97,8 @@ class ResponsiveContractTests(unittest.TestCase):
         self.assertIn("eventName = 'installer_download_click'", source)
         self.assertIn("download_platform", source)
         self.assertIn("content_locale", source)
+        self.assertIn("eventParameters.event_callback", source)
+        self.assertIn("eventParameters.event_timeout = 600", source)
 
     def test_download_chooser_is_localized_and_platform_specific(self):
         for filename in ("index.html", "index.ca.html", "index.es.html"):

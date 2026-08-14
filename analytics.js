@@ -57,13 +57,37 @@
       eventName = 'download_click';
     }
 
-    window.gtag('event', eventName, {
+    const eventParameters = {
       link_url: link.href,
       link_text: link.textContent.trim().slice(0, 100),
       link_domain: hostname,
       download_kind: link.dataset.downloadKind || undefined,
       download_platform: link.dataset.platform || undefined,
       content_locale: link.dataset.locale || document.documentElement.lang || 'en',
-    });
+    };
+    const shouldWaitForAnalytics =
+      eventName === 'desktop_download_click' &&
+      hostname === window.location.hostname &&
+      link.target !== '_blank' &&
+      event.button === 0 &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.shiftKey &&
+      !event.altKey;
+
+    if (shouldWaitForAnalytics) {
+      event.preventDefault();
+      let navigated = false;
+      const continueToDownload = function () {
+        if (navigated) return;
+        navigated = true;
+        window.location.assign(link.href);
+      };
+      eventParameters.event_callback = continueToDownload;
+      eventParameters.event_timeout = 600;
+      window.setTimeout(continueToDownload, 700);
+    }
+
+    window.gtag('event', eventName, eventParameters);
   });
 })();
