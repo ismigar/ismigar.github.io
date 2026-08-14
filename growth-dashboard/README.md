@@ -46,6 +46,19 @@ The Worker still owns OAuth and all data APIs.
    immediately and retained only in browser session storage.
 9. CORS accepts the configured `DASHBOARD_PUBLIC_URL` origin only.
 
+## Marketplace submission broker
+
+The Worker also exposes `POST /api/marketplace/submissions` for the Gnosi
+backend. Store a dedicated `MARKETPLACE_SUBMISSION_TOKEN` with
+`wrangler secret put`, and point Gnosi at the endpoint with
+`GNOSI_MARKETPLACE_SUBMISSION_URL` plus the matching
+`GNOSI_MARKETPLACE_SUBMISSION_TOKEN`.
+
+Uploaded packages remain private as bounded D1 chunks. Metadata, downloads, and
+review state are available only through OAuth-protected moderation endpoints.
+Approval records human review but never signs or publishes the package; the
+official release workflow remains the only signing boundary.
+
 The AlternativeTo listing should link to one of:
 
 - `https://gnosi-growth-dashboard.gnosi-ismigar-growth.workers.dev/go/alternativeto/github`
