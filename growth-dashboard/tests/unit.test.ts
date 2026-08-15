@@ -42,6 +42,22 @@ describe('AlternativeTo parser', () => {
     );
   });
 
+  it('extracts a Jina Reader snapshot of the public product page', () => {
+    const markdown = `
+      Title: Gnosi: A local-first, open-source workspace
+      URL Source: https://alternativeto.net/software/gnosi--your-digital-second-brain-/about/
+      Markdown Content:
+      1 like 1 like
+      No comments or reviews, maybe you want to be first?
+    `;
+    expect(parseAlternativeTo(markdown)).toMatchObject({
+      likes: 1,
+      comments: 0,
+      reviews: 0,
+      rating: 0,
+    });
+  });
+
   it('normalizes a manual snapshot and rejects invalid counters', () => {
     expect(
       normalizeAlternativeToSnapshot({ likes: 1, comments: 0, reviews: 0, rating: 0 }),

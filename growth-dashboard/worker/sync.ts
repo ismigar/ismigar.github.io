@@ -3,6 +3,7 @@ import type { Env } from './types';
 
 const GITHUB_API_VERSION = '2026-03-10';
 const ALTERNATIVETO_MANUAL_VERSION = 'manual-v2';
+const ALTERNATIVETO_READER_VERSION = 'jina-reader-v1';
 
 export interface ManualAlternativeToSnapshot {
   likes: number;
@@ -352,11 +353,25 @@ export async function syncGitHub(env: Env): Promise<void> {
 
 export async function syncAlternativeTo(env: Env): Promise<void> {
   try {
-    const response = await fetch(env.ALTERNATIVETO_URL, {
-      headers: { 'User-Agent': 'Gnosi growth metrics bot (+https://gnosi.temenosismael.org)' },
-      cf: { cacheTtl: 21_600, cacheEverything: true },
-    });
-    if (!response.ok) throw new Error(`AlternativeTo returned ${response.status}`);
+    if (!env.JINA_API_KEY) throw new Error('JINA_API_KEY is not configured');
+    let response: Response | undefined;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      response = await fetch(`https://r.jina.ai/${env.ALTERNATIVETO_URL}`, {
+        headers: {
+          Accept: 'text/plain',
+          Authorization: `Bearer ${env.JINA_API_KEY}`,
+          'X-Cache-Tolerance': '3600',
+          'X-Target-Selector': '[title="Like Gnosi"], .commonBoxList',
+        },
+      });
+      if (response.status !== 429 || attempt === 2) break;
+      const retryAfter = Number(response.headers.get('Retry-After'));
+      const delayMs =
+        Math.min(10, Math.max(1, Number.isFinite(retryAfter) ? retryAfter : 2)) * 1000;
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+    if (!response) throw new Error('Jina Reader did not return a response');
+    if (!response.ok) throw new Error(`Jina Reader returned ${response.status}`);
     const metrics = parseAlternativeTo(await response.text());
     const capturedAt = now();
     await Promise.all(
@@ -364,7 +379,13 @@ export async function syncAlternativeTo(env: Env): Promise<void> {
         insertMetric(env, 'alternativeto', metric, metrics[metric], today(), '', capturedAt),
       ),
     );
-    await recordSync(env, 'alternativeto', 'healthy', '', metrics.parserVersion);
+    await recordSync(
+      env,
+      'alternativeto',
+      'healthy',
+      'Public listing snapshot via Jina Reader',
+      `${ALTERNATIVETO_READER_VERSION}:${metrics.parserVersion}`,
+    );
   } catch (error) {
     const manualSnapshot = await env.DB.prepare(
       `SELECT 1 AS available
@@ -579,9 +600,10 @@ export async function syncSponsors(env: Env): Promise<void> {
 }
 
 export async function runScheduledSync(env: Env, daily: boolean): Promise<void> {
-  // AlternativeTo does not publish a metrics API and rejects Worker requests.
-  // Its listing counters are maintained through the authenticated manual import.
   const jobs: Array<Promise<void>> = [syncGitHub(env)];
-  if (daily) jobs.push(syncGa4(env), syncSponsors(env));
+  if (daily) {
+    jobs.push(syncGa4(env), syncSponsors(env));
+    if (env.JINA_API_KEY) jobs.push(syncAlternativeTo(env));
+  }
   await Promise.allSettled(jobs);
 }
