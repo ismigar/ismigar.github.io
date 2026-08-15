@@ -29,8 +29,10 @@ The Worker still owns OAuth and all data APIs.
 1. Create a free D1 database named `gnosi-growth` and replace the placeholder
    `database_id` in `wrangler.jsonc`.
 2. Store `GITHUB_TOKEN`, `GITHUB_WEBHOOK_SECRET`, `GA4_CLIENT_EMAIL`,
-   `GA4_PRIVATE_KEY`, `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`,
-   and a random `SESSION_SECRET` with `wrangler secret put`. Never commit them.
+   `GA4_PRIVATE_KEY`, `JINA_API_KEY`, `GITHUB_OAUTH_CLIENT_ID`,
+   `GITHUB_OAUTH_CLIENT_SECRET`, and a random `SESSION_SECRET` with
+   `wrangler secret put`. Never commit them. `JINA_API_KEY` is optional; without
+   it, AlternativeTo stays on the authenticated manual snapshot.
 3. Replace the non-secret `GA4_PROPERTY_ID` placeholder.
 4. Grant the GA4 service account Viewer access to the existing property.
 5. Configure a GitHub Sponsors webhook at
@@ -66,11 +68,19 @@ The AlternativeTo listing should link to one of:
 - `https://gnosi-growth-dashboard.gnosi-ismigar-growth.workers.dev/go/alternativeto/releases`
 - `https://gnosi-growth-dashboard.gnosi-ismigar-growth.workers.dev/go/alternativeto/sponsors`
 
-AlternativeTo does not provide an official metrics API and blocks scheduled
-Worker fetches. Update its public likes, comments, reviews, and rating through
-the authenticated dashboard form. The source health explicitly labels this as
-a manual snapshot. Redirect clicks and GitHub referrer traffic remain automatic
-because those signals are collected by Gnosi and GitHub respectively.
+AlternativeTo does not provide a maintained public metrics API and blocks both
+direct Worker requests and Cloudflare Browser Run. The daily job reads the
+normal public product page through Jina Reader, using narrow selectors, strict
+product-marker validation, and the optional `JINA_API_KEY` Worker secret. A
+free personal key is required for scheduled collection because anonymous quotas
+are applied to shared Cloudflare egress IPs and are therefore unreliable. The
+job honors a transient `429 Retry-After` with at most two retries. Without the
+secret, the scheduled job leaves the manual snapshot untouched. If the reader
+remains unavailable or its output changes, the last valid snapshot is kept and
+likes, comments, reviews, and rating can still be updated through the
+authenticated dashboard form. Redirect clicks and GitHub referrer traffic
+remain automatic because those signals are collected by Gnosi and GitHub
+respectively.
 
 ## Data interpretation
 

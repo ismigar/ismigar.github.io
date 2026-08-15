@@ -6,6 +6,7 @@ export interface Env {
   GITHUB_TOKEN?: string;
   GITHUB_WEBHOOK_SECRET?: string;
   ALTERNATIVETO_URL: string;
+  JINA_API_KEY?: string;
   DASHBOARD_START_DATE: string;
   GITHUB_OAUTH_CLIENT_ID?: string;
   GITHUB_OAUTH_CLIENT_SECRET?: string;
