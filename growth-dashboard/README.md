@@ -66,6 +66,12 @@ The AlternativeTo listing should link to one of:
 - `https://gnosi-growth-dashboard.gnosi-ismigar-growth.workers.dev/go/alternativeto/releases`
 - `https://gnosi-growth-dashboard.gnosi-ismigar-growth.workers.dev/go/alternativeto/sponsors`
 
+AlternativeTo does not provide an official metrics API and blocks scheduled
+Worker fetches. Update its public likes, comments, reviews, and rating through
+the authenticated dashboard form. The source health explicitly labels this as
+a manual snapshot. Redirect clicks and GitHub referrer traffic remain automatic
+because those signals are collected by Gnosi and GitHub respectively.
+
 ## Data interpretation
 
 - Redirect events measure intent.

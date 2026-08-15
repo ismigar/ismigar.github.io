@@ -2,7 +2,7 @@ import { ALTERNATIVETO_PARSER_VERSION, parseAlternativeTo } from './alternativet
 import type { Env } from './types';
 
 const GITHUB_API_VERSION = '2026-03-10';
-const ALTERNATIVETO_MANUAL_VERSION = 'manual-v1';
+const ALTERNATIVETO_MANUAL_VERSION = 'manual-v2';
 
 export interface ManualAlternativeToSnapshot {
   likes: number;
@@ -107,7 +107,7 @@ export async function importAlternativeToSnapshot(
     env,
     'alternativeto',
     'healthy',
-    'Manual snapshot imported; automated fetch remains blocked',
+    'Manual snapshot imported from the public listing; no official metrics API is available',
     ALTERNATIVETO_MANUAL_VERSION,
   );
 }
@@ -579,7 +579,9 @@ export async function syncSponsors(env: Env): Promise<void> {
 }
 
 export async function runScheduledSync(env: Env, daily: boolean): Promise<void> {
-  const jobs: Array<Promise<void>> = [syncGitHub(env), syncAlternativeTo(env)];
+  // AlternativeTo does not publish a metrics API and rejects Worker requests.
+  // Its listing counters are maintained through the authenticated manual import.
+  const jobs: Array<Promise<void>> = [syncGitHub(env)];
   if (daily) jobs.push(syncGa4(env), syncSponsors(env));
   await Promise.allSettled(jobs);
 }
