@@ -1,4 +1,12 @@
 (() => {
+  // Static fallbacks if GitHub API rate-limits (HTTP 403) or network fails
+  const FALLBACK_ASSETS = {
+    "mac-arm": "https://github.com/ismigar/Gnosi/releases/download/v1.0.3/Gnosi-1.0.3-arm64.dmg",
+    "mac-intel": "https://github.com/ismigar/Gnosi/releases/download/v1.0.3/Gnosi-1.0.3-x64.dmg",
+    windows: "https://github.com/ismigar/Gnosi/releases/download/v1.0.3/Gnosi-1.0.3-Setup.exe",
+    linux: "https://github.com/ismigar/Gnosi/releases/download/v1.0.3/Gnosi-1.0.3-x86_64.AppImage",
+  };
+
   const assetPatterns = {
     "mac-arm": /arm64\.dmg$/i,
     "mac-intel": /(?:x64|x86_64)\.dmg$/i,
@@ -86,33 +94,52 @@
     }
   };
 
-  // Fetch release assets from GitHub
-  const releasePromise = fetch("https://api.github.com/repos/ismigar/Gnosi/releases/latest", {
-    headers: { Accept: "application/vnd.github+json" },
-  })
-    .then((res) => (res.ok ? res.json() : null))
-    .catch(() => null);
+  // If user lands directly on /download/ page, redirect back to homepage & auto-trigger download
+  if (window.location.pathname.includes("/download/")) {
+    const isCa = window.location.pathname.includes(".ca.");
+    const isEs = window.location.pathname.includes(".es.");
+    const targetHome = isCa ? "../index.ca.html?download=1" : isEs ? "../index.es.html?download=1" : "../index.html?download=1";
+    window.location.replace(targetHome);
+    return;
+  }
+
+  // Fetch release assets from GitHub with quick timeout
+  const releasePromise = Promise.race([
+    fetch("https://api.github.com/repos/ismigar/Gnosi/releases/latest", {
+      headers: { Accept: "application/vnd.github+json" },
+    }).then((res) => (res.ok ? res.json() : null)),
+    new Promise((resolve) => setTimeout(() => resolve(null), 2500)),
+  ]).catch(() => null);
 
   const getAssetUrlForPlatform = (release, plat) => {
-    if (!release || !release.assets) return null;
-    const pattern = assetPatterns[plat || detectedPlatform];
-    const asset = release.assets.find((candidate) => pattern?.test(candidate.name));
-    return asset ? asset.browser_download_url : null;
+    const targetPlat = plat || detectedPlatform || "mac-arm";
+    if (release && release.assets) {
+      const pattern = assetPatterns[targetPlat];
+      const asset = release.assets.find((candidate) => pattern?.test(candidate.name));
+      if (asset) return asset.browser_download_url;
+    }
+    return FALLBACK_ASSETS[targetPlat] || FALLBACK_ASSETS["mac-arm"];
   };
 
   // Override href on landing page download buttons so native link navigation NEVER occurs
-  if (!window.location.pathname.includes("/download/")) {
-    const overrideButtons = () => {
-      document.querySelectorAll('[data-download-kind="desktop"], a[href*="download/"]').forEach((btn) => {
-        btn.setAttribute("data-fallback-href", btn.getAttribute("href") || "");
-        btn.setAttribute("href", "javascript:void(0);");
-      });
-    };
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", overrideButtons);
-    } else {
-      overrideButtons();
-    }
+  const overrideButtons = () => {
+    document.querySelectorAll('[data-download-kind="desktop"], a[href*="download/"]').forEach((btn) => {
+      btn.setAttribute("data-fallback-href", btn.getAttribute("href") || "");
+      btn.setAttribute("href", "javascript:void(0);");
+    });
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", overrideButtons);
+  } else {
+    overrideButtons();
+  }
+
+  // Auto-download trigger if redirected via ?download=1
+  if (window.location.search.includes("download=1")) {
+    releasePromise.then((release) => {
+      const url = getAssetUrlForPlatform(release, detectedPlatform);
+      triggerDirectDownload(url);
+    });
   }
 
   // GLOBAL CAPTURE-PHASE EVENT DELEGATION: Intercept ANY download button click on the landing page
@@ -121,7 +148,6 @@
     (evt) => {
       const btn = evt.target.closest('[data-download-kind="desktop"], [data-fallback-href*="download"]');
       if (!btn) return;
-      if (window.location.pathname.includes("/download/")) return;
       if (evt.ctrlKey || evt.metaKey || evt.shiftKey || evt.button !== 0) return;
 
       evt.preventDefault();
@@ -132,86 +158,13 @@
 
       releasePromise.then((release) => {
         const url = getAssetUrlForPlatform(release, detectedPlatform);
-        if (url) {
-          triggerDirectDownload(url);
-          btn.textContent = copy.started;
-          setTimeout(() => {
-            btn.textContent = originalText;
-          }, 4000);
-        } else {
-          const fallback = btn.getAttribute("data-fallback-href");
-          if (fallback) window.location.href = fallback;
-        }
+        triggerDirectDownload(url);
+        btn.textContent = copy.started;
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 4000);
       });
     },
     true
   );
-
-  // STANDALONE DOWNLOAD PAGE LOGIC
-  const releaseStatus = document.querySelector("#release-status");
-  const downloadLinks = [...document.querySelectorAll("[data-release-asset]")];
-  const grid = document.querySelector(".platform-grid");
-
-  if (releaseStatus && downloadLinks.length && grid) {
-    releaseStatus.textContent = copy.loading;
-
-    const bytes = (value) => {
-      const megabytes = value / 1024 / 1024;
-      return `${megabytes.toLocaleString(locale, { maximumFractionDigits: 1 })} MB`;
-    };
-
-    if (detectedPlatform) {
-      const recommended = document.querySelector(`[data-platform-card="${detectedPlatform}"]`);
-      if (recommended) {
-        grid.classList.add("has-detected");
-        recommended.classList.add("is-recommended", "is-detected-primary");
-        const tag = recommended.querySelector(".recommended-tag");
-        if (tag) tag.textContent = copy.detectedTag;
-
-        const toggleWrapper = document.createElement("div");
-        toggleWrapper.className = "toggle-platforms-wrapper";
-        const toggleBtn = document.createElement("button");
-        toggleBtn.type = "button";
-        toggleBtn.className = "btn-toggle-platforms";
-        toggleBtn.textContent = copy.showAll;
-
-        let isExpanded = false;
-        toggleBtn.addEventListener("click", () => {
-          isExpanded = !isExpanded;
-          grid.classList.toggle("is-expanded", isExpanded);
-          toggleBtn.textContent = isExpanded ? copy.hideAll : copy.showAll;
-        });
-
-        toggleWrapper.appendChild(toggleBtn);
-        grid.parentNode.insertBefore(toggleWrapper, grid.nextSibling);
-      }
-    }
-
-    releasePromise.then((release) => {
-      if (!release) {
-        releaseStatus.textContent = copy.fallback;
-        return;
-      }
-      let autoDownloadUrl = null;
-      downloadLinks.forEach((link) => {
-        const platform = link.dataset.releaseAsset;
-        const pattern = assetPatterns[platform];
-        const asset = (release.assets || []).find((candidate) => pattern?.test(candidate.name));
-        if (!asset) return;
-        link.href = asset.browser_download_url;
-        link.textContent = `${copy.download} · ${bytes(asset.size)}`;
-        if (platform === detectedPlatform) {
-          autoDownloadUrl = asset.browser_download_url;
-        }
-      });
-      releaseStatus.textContent = copy.ready(release.tag_name || release.name || "latest");
-
-      if (autoDownloadUrl) {
-        releaseStatus.textContent = copy.downloading;
-        setTimeout(() => triggerDirectDownload(autoDownloadUrl), 400);
-      }
-    });
-  }
-})();textContent = copy.fallback;
-    });
 })();
