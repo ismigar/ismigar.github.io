@@ -113,7 +113,8 @@
 
   const getAssetUrlForPlatform = (release, plat) => {
     const targetPlat = plat || detectedPlatform || "mac-arm";
-    if (release && release.assets) {
+    const minVersion = "v1.0.6";
+    if (release && release.tag_name && release.tag_name >= minVersion && release.assets) {
       const pattern = assetPatterns[targetPlat];
       const asset = release.assets.find((candidate) => pattern?.test(candidate.name));
       if (asset) return asset.browser_download_url;
