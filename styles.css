@@ -158,7 +158,10 @@ main {
 }
 
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   padding: 14px 28px;
   border-radius: var(--radius);
   font-size: 16px;
@@ -2352,19 +2355,14 @@ section,
 
 .platform-card .btn {
   margin-top: auto;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .platform-symbol {
-  align-items: center;
-  background: var(--bg-alt);
-  border-radius: 13px;
-  color: var(--accent);
-  display: flex;
-  font-size: 1.25rem;
-  font-weight: 900;
-  height: 46px;
-  justify-content: center;
-  width: 46px;
+  display: none !important;
 }
 
 .recommended-tag {

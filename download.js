@@ -132,8 +132,15 @@
       if (autoDownloadUrl) {
         releaseStatus.textContent = copy.starting;
         setTimeout(() => {
-          window.location.href = autoDownloadUrl;
-        }, 600);
+          try {
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = autoDownloadUrl;
+            document.body.appendChild(iframe);
+          } catch (e) {
+            window.location.href = autoDownloadUrl;
+          }
+        }, 400);
       }
     })
     .catch(() => {
