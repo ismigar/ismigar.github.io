@@ -1,7 +1,8 @@
 (() => {
   const releaseStatus = document.querySelector("#release-status");
   const downloadLinks = [...document.querySelectorAll("[data-release-asset]")];
-  if (!releaseStatus || !downloadLinks.length) return;
+  const grid = document.querySelector(".platform-grid");
+  if (!releaseStatus || !downloadLinks.length || !grid) return;
 
   const assetPatterns = {
     "mac-arm": /arm64\.dmg$/i,
@@ -17,21 +18,27 @@
       ready: (version) => `Latest release: ${version}`,
       fallback: "Installer lookup failed. The buttons open the latest GitHub release instead.",
       download: "Download",
-      recommended: "Recommended",
+      detectedTag: "✓ Detected for your system",
+      showAll: "Show all operating systems ↓",
+      hideAll: "Hide other operating systems ↑",
     },
     ca: {
       loading: "Cercant els instal·ladors més recents…",
       ready: (version) => `Darrera versió: ${version}`,
       fallback: "No s’han pogut localitzar els instal·ladors. Els botons obren la darrera release de GitHub.",
       download: "Descarrega",
-      recommended: "Recomanat",
+      detectedTag: "✓ Detectat per al teu sistema",
+      showAll: "Mostra tots els sistemes operatius ↓",
+      hideAll: "Amaga els altres sistemes operatius ↑",
     },
     es: {
       loading: "Buscando los instaladores más recientes…",
       ready: (version) => `Última versión: ${version}`,
       fallback: "No se han podido localizar los instaladores. Los botones abren la última release de GitHub.",
       download: "Descarga",
-      recommended: "Recomendado",
+      detectedTag: "✓ Detectado para tu sistema",
+      showAll: "Mostrar todos los sistemas operativos ↓",
+      hideAll: "Ocultar otros sistemas operativos ↑",
     },
   };
   const copy = translations[locale] || translations.en;
@@ -43,22 +50,56 @@
   };
 
   const detectedPlatform = (() => {
-    const platform = `${navigator.userAgentData?.platform || navigator.platform || ""} ${navigator.userAgent}`.toLowerCase();
-    if (platform.includes("mac")) {
-      if (platform.includes("arm") || platform.includes("aarch64")) return "mac-arm";
-      return "";
+    const ua = navigator.userAgent.toLowerCase();
+    const platform = `${navigator.userAgentData?.platform || navigator.platform || ""}`.toLowerCase();
+    const arch = `${navigator.userAgentData?.architecture || ""}`.toLowerCase();
+
+    if (platform.includes("win") || ua.includes("windows")) return "windows";
+    if (platform.includes("linux") || ua.includes("linux")) return "linux";
+    if (platform.includes("mac") || ua.includes("macintosh")) {
+      if (arch.includes("arm") || arch.includes("aarch64")) return "mac-arm";
+      try {
+        const canvas = document.createElement("canvas");
+        const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        if (gl) {
+          const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+          if (debugInfo) {
+            const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
+            if (renderer.includes("apple") || renderer.includes("m1") || renderer.includes("m2") || renderer.includes("m3") || renderer.includes("m4")) {
+              return "mac-arm";
+            }
+          }
+        }
+      } catch (e) {}
+      return "mac-arm";
     }
-    if (platform.includes("win")) return "windows";
-    if (platform.includes("linux")) return "linux";
     return "";
   })();
 
   if (detectedPlatform) {
     const recommended = document.querySelector(`[data-platform-card="${detectedPlatform}"]`);
     if (recommended) {
-      recommended.classList.add("is-recommended");
+      grid.classList.add("has-detected");
+      recommended.classList.add("is-recommended", "is-detected-primary");
       const tag = recommended.querySelector(".recommended-tag");
-      if (tag) tag.textContent = copy.recommended;
+      if (tag) tag.textContent = copy.detectedTag;
+
+      const toggleWrapper = document.createElement("div");
+      toggleWrapper.className = "toggle-platforms-wrapper";
+      const toggleBtn = document.createElement("button");
+      toggleBtn.type = "button";
+      toggleBtn.className = "btn-toggle-platforms";
+      toggleBtn.textContent = copy.showAll;
+
+      let isExpanded = false;
+      toggleBtn.addEventListener("click", () => {
+        isExpanded = !isExpanded;
+        grid.classList.toggle("is-expanded", isExpanded);
+        toggleBtn.textContent = isExpanded ? copy.hideAll : copy.showAll;
+      });
+
+      toggleWrapper.appendChild(toggleBtn);
+      grid.parentNode.insertBefore(toggleWrapper, grid.nextSibling);
     }
   }
 
