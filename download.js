@@ -100,12 +100,17 @@
     return asset ? asset.browser_download_url : null;
   };
 
-  // BIND LANDING PAGE BUTTONS [data-download-kind="desktop"]
-  const landingButtons = [...document.querySelectorAll('[data-download-kind="desktop"]')];
-  landingButtons.forEach((btn) => {
-    btn.addEventListener("click", (evt) => {
+  // GLOBAL CAPTURE-PHASE EVENT DELEGATION: Intercept ANY download button click on the landing page
+  document.addEventListener(
+    "click",
+    (evt) => {
+      const btn = evt.target.closest('[data-download-kind="desktop"], a[href*="download/index"]');
+      if (!btn) return;
+      if (window.location.pathname.includes("/download/")) return;
       if (evt.ctrlKey || evt.metaKey || evt.shiftKey || evt.button !== 0) return;
+
       evt.preventDefault();
+      evt.stopPropagation();
 
       const originalText = btn.textContent;
       btn.textContent = copy.downloading;
@@ -117,13 +122,14 @@
           btn.textContent = copy.started;
           setTimeout(() => {
             btn.textContent = originalText;
-          }, 3500);
+          }, 4000);
         } else {
           window.location.href = btn.getAttribute("href") || "download/";
         }
       });
-    });
-  });
+    },
+    true
+  );
 
   // STANDALONE DOWNLOAD PAGE LOGIC
   const releaseStatus = document.querySelector("#release-status");
