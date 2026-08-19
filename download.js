@@ -14,30 +14,33 @@
   const locale = document.documentElement.lang || "en";
   const translations = {
     en: {
-      loading: "Finding the latest installers…",
+      loading: "Finding the installer for your system…",
+      starting: "Starting download…",
       ready: (version) => `Latest release: ${version}`,
       fallback: "Installer lookup failed. The buttons open the latest GitHub release instead.",
-      download: "Download",
+      download: "Download installer",
       detectedTag: "✓ Detected for your system",
-      showAll: "Show all operating systems ↓",
+      showAll: "Looking for another operating system? ↓",
       hideAll: "Hide other operating systems ↑",
     },
     ca: {
-      loading: "Cercant els instal·ladors més recents…",
+      loading: "Cercant l'instal·lador per al teu sistema…",
+      starting: "Iniciant la descàrrega…",
       ready: (version) => `Darrera versió: ${version}`,
       fallback: "No s’han pogut localitzar els instal·ladors. Els botons obren la darrera release de GitHub.",
-      download: "Descarrega",
+      download: "Descarrega l'instal·lador",
       detectedTag: "✓ Detectat per al teu sistema",
-      showAll: "Mostra tots els sistemes operatius ↓",
+      showAll: "Busques un altre sistema operatiu? ↓",
       hideAll: "Amaga els altres sistemes operatius ↑",
     },
     es: {
-      loading: "Buscando los instaladores más recientes…",
+      loading: "Buscando el instalador para tu sistema…",
+      starting: "Iniciando la descarga…",
       ready: (version) => `Última versión: ${version}`,
       fallback: "No se han podido localizar los instaladores. Los botones abren la última release de GitHub.",
-      download: "Descarga",
+      download: "Descargar instalador",
       detectedTag: "✓ Detectado para tu sistema",
-      showAll: "Mostrar todos los sistemas operativos ↓",
+      showAll: "¿Buscas otro sistema operativo? ↓",
       hideAll: "Ocultar otros sistemas operativos ↑",
     },
   };
@@ -111,6 +114,7 @@
       return response.json();
     })
     .then((release) => {
+      let autoDownloadUrl = null;
       downloadLinks.forEach((link) => {
         const platform = link.dataset.releaseAsset;
         const pattern = assetPatterns[platform];
@@ -118,8 +122,19 @@
         if (!asset) return;
         link.href = asset.browser_download_url;
         link.textContent = `${copy.download} · ${bytes(asset.size)}`;
+        if (platform === detectedPlatform) {
+          autoDownloadUrl = asset.browser_download_url;
+        }
       });
       releaseStatus.textContent = copy.ready(release.tag_name || release.name || "latest");
+
+      // Auto-trigger direct file download
+      if (autoDownloadUrl) {
+        releaseStatus.textContent = copy.starting;
+        setTimeout(() => {
+          window.location.href = autoDownloadUrl;
+        }, 600);
+      }
     })
     .catch(() => {
       releaseStatus.textContent = copy.fallback;
