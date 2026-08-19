@@ -1,10 +1,10 @@
 (() => {
   // Static fallbacks if GitHub API rate-limits (HTTP 403) or network fails
   const FALLBACK_ASSETS = {
-    "mac-arm": "https://github.com/ismigar/Gnosi/releases/download/v1.0.6/Gnosi-1.0.6-arm64.dmg",
-    "mac-intel": "https://github.com/ismigar/Gnosi/releases/download/v1.0.6/Gnosi-1.0.6-x64.dmg",
-    windows: "https://github.com/ismigar/Gnosi/releases/download/v1.0.6/Gnosi-1.0.6-Setup.exe",
-    linux: "https://github.com/ismigar/Gnosi/releases/download/v1.0.6/Gnosi-1.0.6-x86_64.AppImage",
+    "mac-arm": "https://github.com/ismigar/Gnosi/releases/download/v1.0.3/Gnosi-1.0.3-arm64.dmg",
+    "mac-intel": "https://github.com/ismigar/Gnosi/releases/download/v1.0.3/Gnosi-1.0.3-x64.dmg",
+    windows: "https://github.com/ismigar/Gnosi/releases/download/v1.0.3/Gnosi-1.0.3-Setup.exe",
+    linux: "https://github.com/ismigar/Gnosi/releases/download/v1.0.3/Gnosi-1.0.3-x86_64.AppImage",
   };
 
   const assetPatterns = {
