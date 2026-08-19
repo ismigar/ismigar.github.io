@@ -100,11 +100,26 @@
     return asset ? asset.browser_download_url : null;
   };
 
+  // Override href on landing page download buttons so native link navigation NEVER occurs
+  if (!window.location.pathname.includes("/download/")) {
+    const overrideButtons = () => {
+      document.querySelectorAll('[data-download-kind="desktop"], a[href*="download/"]').forEach((btn) => {
+        btn.setAttribute("data-fallback-href", btn.getAttribute("href") || "");
+        btn.setAttribute("href", "javascript:void(0);");
+      });
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", overrideButtons);
+    } else {
+      overrideButtons();
+    }
+  }
+
   // GLOBAL CAPTURE-PHASE EVENT DELEGATION: Intercept ANY download button click on the landing page
   document.addEventListener(
     "click",
     (evt) => {
-      const btn = evt.target.closest('[data-download-kind="desktop"], a[href*="download/index"]');
+      const btn = evt.target.closest('[data-download-kind="desktop"], [data-fallback-href*="download"]');
       if (!btn) return;
       if (window.location.pathname.includes("/download/")) return;
       if (evt.ctrlKey || evt.metaKey || evt.shiftKey || evt.button !== 0) return;
@@ -124,7 +139,8 @@
             btn.textContent = originalText;
           }, 4000);
         } else {
-          window.location.href = btn.getAttribute("href") || "download/";
+          const fallback = btn.getAttribute("data-fallback-href");
+          if (fallback) window.location.href = fallback;
         }
       });
     },
