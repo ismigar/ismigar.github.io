@@ -27,7 +27,13 @@ jobs:
         run: python scripts/check_locale_parity.py --base-ref "$BASE_SHA"
 
       - name: Verify navigation syntax
-        run: node --check navigation.js
+        run: |
+          node --check navigation.js
+          node --check release-history.mjs
+          node --test tests/release-history.test.mjs
+
+      - name: Verify published release history
+        run: python scripts/sync_release_history.py --check
 
       - name: Run public-site tests
         run: python -m unittest discover -s tests -v
