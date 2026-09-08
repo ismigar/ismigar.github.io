@@ -13,6 +13,7 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <script src="analytics.js"></script>
     <script src="navigation.js" defer></script>
+    <script type="module" src="release-history.mjs"></script>
     <style>
       .changelog-container { max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
       .changelog-header { margin-bottom: 3rem; text-align: left; border-bottom: 1px solid var(--line); padding-bottom: 2rem; }
@@ -20,7 +21,7 @@
       .changelog-header p { color: var(--muted); font-size: 1.1rem; }
       .release-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 2rem; margin-bottom: 2.5rem; box-shadow: var(--shadow); }
       .release-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.5rem; }
-      .release-title { display: flex; align-items: center; gap: 0.75rem; }
+      .release-title { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
       .release-title h2 { font-size: 1.5rem; margin: 0; }
       .release-badge { background: var(--bg-accent); color: var(--gnosi-primary-dark); font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.05em; }
       .release-date { color: var(--muted); font-size: 0.9rem; }
@@ -28,11 +29,17 @@
       .release-downloads strong { font-size: 0.85rem; width: 100%; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
       .download-btn { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--gnosi-primary-dark); color: #fff; text-decoration: none; padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; transition: opacity 0.15s ease; }
       .download-btn:hover { opacity: 0.9; text-decoration: none; }
-      .section-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; }
+      .section-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 1.2rem; }
       .section-box { background: var(--bg-body); border: 1px solid var(--line); border-radius: 8px; padding: 1.2rem; }
       .section-box h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
       .section-box ul { padding-left: 1.2rem; margin: 0; }
       .section-box li { margin-bottom: 0.4rem; font-size: 0.95rem; line-height: 1.5; }
+      .release-card { scroll-margin-top: 6rem; }
+      .release-card:target { border-color: var(--gnosi-primary-dark); }
+      .release-title a { color: inherit; text-decoration: none; }
+      .release-title a:hover { text-decoration: underline; }
+      .release-link { margin: 1.5rem 0 0; }
+      @media (max-width: 600px) { .release-card { padding: 1.25rem; } }
     </style>
   </head>
   <body>
@@ -46,10 +53,10 @@
           <span class="nav-toggle-icon" aria-hidden="true"></span>
         </button>
         <div class="nav-links" id="site-navigation">
-          <a href="index.html#features">Features</a>
-          <a href="index.html#ai">AI</a>
-          <a href="index.html#installation">Installation</a>
-          <a href="index.html#contribute">Contribute</a>
+          <a href="index.html#workflow">Features</a>
+          <a href="index.html#why-gnosi">AI</a>
+          <a href="index.html#download">Installation</a>
+          <a href="index.html#community">Contribute</a>
           <a href="changelog.html" class="active" aria-current="page">Changelog</a>
           <a href="/engineering/">Engineering docs</a>
           <a href="https://github.com/ismigar/Gnosi" target="_blank" rel="noreferrer">GitHub</a>
@@ -68,127 +75,135 @@
         <p>All releases, improvements, binary fixes, and updates for Gnosi.</p>
       </header>
 
-      <!-- Release 1.0.0-rc.2 -->
-      <article class="release-card">
+      <div id="release-history">
+      <!-- release-history:start -->
+      <article class="release-card" id="v2.0.6">
         <div class="release-meta">
-          <div class="release-title">
-            <h2>Gnosi v1.0.0-rc.2</h2>
-            <span class="release-badge">Prerelease</span>
-          </div>
-          <time class="release-date">August 3, 2026</time>
+          <div class="release-title"><h2><a href="#v2.0.6">Gnosi v2.0.6</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-08-26">2026-08-26</time>
         </div>
-
-        <div class="release-downloads">
-          <strong>Binaries available on GitHub Releases:</strong>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.2/Gnosi-1.0.0-rc.2-arm64.dmg" target="_blank" rel="noreferrer">macOS (Apple Silicon) .dmg</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.2/Gnosi-1.0.0-rc.2-x64.dmg" target="_blank" rel="noreferrer">macOS (Intel) .dmg</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.2/Gnosi-1.0.0-rc.2-Setup.exe" target="_blank" rel="noreferrer">Windows .exe</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.2/Gnosi-1.0.0-rc.2-x86_64.AppImage" target="_blank" rel="noreferrer">Linux .AppImage</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.2/Gnosi-1.0.0-rc.2-amd64.deb" target="_blank" rel="noreferrer">Linux .deb</a>
-        </div>
-
-        <div class="section-grid">
-          <div class="section-box">
-            <h3>✨ Highlights</h3>
-            <ul>
-              <li>Desktop applications now use the official Gnosi icon on macOS, Windows and Linux.</li>
-            </ul>
-          </div>
-          <div class="section-box">
-            <h3>🚀 Improvements</h3>
-            <ul>
-              <li>Release builds verify the macOS signature, application icon and packaged interface before uploading installers.</li>
-            </ul>
-          </div>
-          <div class="section-box">
-            <h3>🔧 Fixes</h3>
-            <ul>
-              <li>The macOS application bundle is fully sealed so the system no longer reports it as damaged.</li>
-              <li>Desktop installers now include and load the complete Gnosi interface.</li>
-            </ul>
-          </div>
-        </div>
+        <div class="section-grid"><section class="section-box"><h3>Highlights</h3><ul><li>Browser navigation and API routes now respect the active Vault, keeping each context isolated.</li></ul></section><section class="section-box"><h3>Improvements</h3><ul><li>Contextual focus indicators once again make the active element clear.</li></ul></section><section class="section-box"><h3>Fixes</h3><ul><li>Windows packaging isolates its Python environment and enables long paths to avoid conflicts with other processes.</li><li>Contextual tooltips close correctly when menus open, and view drafts can be cancelled without stale state.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v2.0.6" target="_blank" rel="noopener noreferrer">Download this version</a></p>
       </article>
 
-      <!-- Release 1.0.0-rc.1 -->
-      <article class="release-card">
+      <article class="release-card" id="v2.0.5">
         <div class="release-meta">
-          <div class="release-title">
-            <h2>Gnosi v1.0.0-rc.1</h2>
-            <span class="release-badge">Prerelease</span>
-          </div>
-          <time class="release-date">August 3, 2026</time>
+          <div class="release-title"><h2><a href="#v2.0.5">Gnosi v2.0.5</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-08-25">2026-08-25</time>
         </div>
-
-        <div class="release-downloads">
-          <strong>Binaries available on GitHub Releases:</strong>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.1/Gnosi-1.0.0-rc.1-arm64.dmg" target="_blank" rel="noreferrer">macOS (Apple Silicon) .dmg</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.1/Gnosi-1.0.0-rc.1-x64.dmg" target="_blank" rel="noreferrer">macOS (Intel) .dmg</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.1/Gnosi-1.0.0-rc.1-Setup.exe" target="_blank" rel="noreferrer">Windows .exe</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.1/Gnosi-1.0.0-rc.1-x86_64.AppImage" target="_blank" rel="noreferrer">Linux .AppImage</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v1.0.0-rc.1/Gnosi-1.0.0-rc.1-amd64.deb" target="_blank" rel="noreferrer">Linux .deb</a>
-        </div>
-
-        <div class="section-grid">
-          <div class="section-box">
-            <h3>✨ Highlights</h3>
-            <ul>
-              <li>Settings are organized into clearer sections and tabs.</li>
-              <li>A new engineering documentation portal makes the system easier to understand and maintain.</li>
-            </ul>
-          </div>
-          <div class="section-box">
-            <h3>🚀 Improvements</h3>
-            <ul>
-              <li>The knowledge graph has clearer edges, loading feedback and more focused hover relationships.</li>
-              <li>Vault navigation and page controls are more consistent and easier to identify.</li>
-            </ul>
-          </div>
-          <div class="section-box">
-            <h3>🔧 Fixes</h3>
-            <ul>
-              <li>Several visual inconsistencies in Settings have been corrected.</li>
-              <li>Expanded and selected interface states are preserved more reliably.</li>
-            </ul>
-          </div>
-        </div>
+        <div class="section-grid"><section class="section-box"><h3>Improvements</h3><ul><li>Release tags are now checked against the packaged version, localized notes and changelog before any platform build starts.</li></ul></section><section class="section-box"><h3>Fixes</h3><ul><li>Updated desktop and backend dependencies improve compatibility and release reliability across macOS, Windows and Linux.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v2.0.5" target="_blank" rel="noopener noreferrer">Download this version</a></p>
       </article>
 
-      <!-- Release 0.3.0-rc.1 -->
-      <article class="release-card">
+      <article class="release-card" id="v1.0.7">
         <div class="release-meta">
-          <div class="release-title">
-            <h2>Gnosi v0.3.0-rc.1</h2>
-            <span class="release-badge">Prerelease</span>
-          </div>
-          <time class="release-date">August 1, 2026</time>
+          <div class="release-title"><h2><a href="#v1.0.7">Gnosi v1.0.7</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-08-19">2026-08-19</time>
         </div>
-
-        <div class="release-downloads">
-          <strong>Binaries available on GitHub Releases:</strong>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v0.3.0-rc.1/Gnosi-0.3.0-rc.1-arm64.dmg" target="_blank" rel="noreferrer">macOS (Apple Silicon) .dmg</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v0.3.0-rc.1/Gnosi-0.3.0-rc.1-x64.dmg" target="_blank" rel="noreferrer">macOS (Intel) .dmg</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v0.3.0-rc.1/Gnosi-0.3.0-rc.1-Setup.exe" target="_blank" rel="noreferrer">Windows .exe</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v0.3.0-rc.1/Gnosi-0.3.0-rc.1-x86_64.AppImage" target="_blank" rel="noreferrer">Linux .AppImage</a>
-          <a class="download-btn" href="https://github.com/ismigar/Gnosi/releases/download/v0.3.0-rc.1/Gnosi-0.3.0-rc.1-amd64.deb" target="_blank" rel="noreferrer">Linux .deb</a>
-        </div>
-
-        <div class="section-grid">
-          <div class="section-box">
-            <h3>✨ Highlights</h3>
-            <ul>
-              <li>First release candidate with desktop packages for macOS, Windows and Linux.</li>
-            </ul>
-          </div>
-          <div class="section-box">
-            <h3>🚀 Improvements</h3>
-            <ul>
-              <li>Desktop update detection and installation foundations are included.</li>
-              <li>Official plugin packages and their distribution index are included with releases.</li>
-            </ul>
-          </div>
-        </div>
+        <div class="section-grid"><section class="section-box"><h3>Improvements</h3><ul><li>Secondary capabilities now activate per Vault as built-in plugins. Existing Vaults migrate to core-only mode without losing data or settings; sharing, mail sync, publishing and user automations stay paused until reactivated.</li></ul></section><section class="section-box"><h3>Fixes</h3><ul><li>Fixed Gallery database view rendering when displaying authorship properties.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v1.0.7" target="_blank" rel="noopener noreferrer">Download this version</a></p>
       </article>
+
+      <article class="release-card" id="v1.0.6">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v1.0.6">Gnosi v1.0.6</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-08-19">2026-08-19</time>
+        </div>
+        <div class="section-grid"><section class="section-box"><h3>Fixes</h3><ul><li>Fixed local data directory fallbacks and release version synchronization across desktop packaging manifests.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v1.0.6" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v1.0.3">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v1.0.3">Gnosi v1.0.3</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-08-15">2026-08-15</time>
+        </div>
+        <div class="section-grid"><section class="section-box"><h3>Improvements</h3><ul><li>The native desktop menu now follows Gnosi’s language and includes Settings, Check for Updates and standard macOS actions.</li></ul></section><section class="section-box"><h3>Fixes</h3><ul><li>A new window can now be opened after the last Gnosi window is closed.</li><li>Production builds no longer expose reload actions or developer tools.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v1.0.3" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v1.0.2">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v1.0.2">Gnosi v1.0.2</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-08-15">2026-08-15</time>
+        </div>
+        <div class="section-grid"><section class="section-box"><h3>Improvements</h3><ul><li>The desktop update notice is now smaller and quieter, and it surfaces errors from user-initiated actions.</li></ul></section><section class="section-box"><h3>Fixes</h3><ul><li>On macOS, the update action now downloads the correct official DMG instead of offering a restart that ad-hoc signatures cannot complete.</li><li>Release history no longer opens automatically when the application starts or before an update download.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v1.0.2" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v1.0.1">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v1.0.1">Gnosi v1.0.1</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-08-15">2026-08-15</time>
+        </div>
+        <div class="section-grid"><section class="section-box"><h3>Fixes</h3><ul><li>The Gnosi icon now shows a centered white G with the correct blue margin in the desktop application and on the web.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v1.0.1" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v1.0.0">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v1.0.0">Gnosi v1.0.0</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-08-15">2026-08-15</time>
+        </div>
+        <div class="section-grid"><section class="section-box"><h3>Highlights</h3><ul><li>Gnosi 1.0 brings sources, evidence notes, connected synthesis and citation handoff together in one local-first research workspace.</li><li>Assistant responses can link supported claims to exact Vault, Reader or web sources.</li></ul></section><section class="section-box"><h3>Improvements</h3><ul><li>A multilingual Research Starter Workspace demonstrates the complete path without requiring an AI provider or external account.</li><li>Vault inventories return complete, paginated and deduplicated results without unnecessary model calls.</li><li>Background analyses can be refreshed, resumed or cancelled, with bounded retries and recovery after a restart.</li><li>Response details expose the plan, privacy boundary, evidence, verification status and processing time.</li></ul></section><section class="section-box"><h3>Fixes</h3><ul><li>Vault requests no longer repeat the same tools until they time out or exhaust the recursion limit.</li><li>Failed or incomplete requests now preserve useful diagnostics and offer clear recovery actions.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v1.0.0-rc.3">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v1.0.0-rc.3">Gnosi v1.0.0-rc.3</a></h2><span class="release-badge">Release candidate</span></div>
+          <time class="release-date" datetime="2026-08-14">2026-08-14</time>
+        </div>
+        <div class="section-grid"><section class="section-box"><h3>Highlights</h3><ul><li>Create Vaults from an official template repository directly in the application.</li><li>Plugins share a repository experience with verifiable provenance information.</li></ul></section><section class="section-box"><h3>Improvements</h3><ul><li>Official indexes and packages are verified with SHA-256 and Ed25519 signatures before installation.</li><li>Vaults and plugins can be exported as filtered packages and prepared for moderated publishing.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v1.0.0-rc.3" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v1.0.0-rc.1">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v1.0.0-rc.1">Gnosi v1.0.0-rc.1</a></h2><span class="release-badge">Release candidate</span></div>
+          <time class="release-date" datetime="2026-08-04">2026-08-04</time>
+        </div>
+        <div class="section-grid"><section class="section-box"><h3>Highlights</h3><ul><li>Settings are organized into clearer sections and tabs.</li><li>A new engineering documentation portal makes the system easier to understand and maintain.</li></ul></section><section class="section-box"><h3>Improvements</h3><ul><li>The knowledge graph has clearer edges, loading feedback and more focused hover relationships.</li><li>Vault navigation and page controls are more consistent and easier to identify.</li></ul></section><section class="section-box"><h3>Fixes</h3><ul><li>Several visual inconsistencies in Settings have been corrected.</li><li>Expanded and selected interface states are preserved more reliably.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v1.0.0-rc.1" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v0.3.0-rc.1">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v0.3.0-rc.1">Gnosi v0.3.0-rc.1</a></h2><span class="release-badge">Release candidate</span></div>
+          <time class="release-date" datetime="2026-08-04">2026-08-04</time>
+        </div>
+        <div class="section-grid"><section class="section-box"><h3>Highlights</h3><ul><li>First release candidate with desktop packages for macOS, Windows and Linux.</li></ul></section><section class="section-box"><h3>Improvements</h3><ul><li>Desktop update detection and installation foundations are included.</li><li>Official plugin packages and their distribution index are included with releases.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v0.3.0-rc.1" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v1.0.0-rc.2">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v1.0.0-rc.2">Gnosi v1.0.0-rc.2</a></h2><span class="release-badge">Release candidate</span></div>
+          <time class="release-date" datetime="2026-08-03">2026-08-03</time>
+        </div>
+        <div class="section-grid"><section class="section-box"><h3>Highlights</h3><ul><li>Desktop applications now use the official Gnosi icon on macOS, Windows and Linux.</li></ul></section><section class="section-box"><h3>Improvements</h3><ul><li>Release builds verify the macOS signature, application icon and packaged interface before uploading installers.</li></ul></section><section class="section-box"><h3>Fixes</h3><ul><li>The macOS application bundle is fully sealed so the system no longer reports it as damaged.</li><li>Desktop installers now include and load the complete Gnosi interface.</li></ul></section></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v1.0.0-rc.2" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v0.2.0">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v0.2.0">Gnosi v0.2.0</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-07-03">2026-07-03</time>
+        </div>
+        <div class="section-grid"></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v0.2.0" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+
+      <article class="release-card" id="v0.1.1">
+        <div class="release-meta">
+          <div class="release-title"><h2><a href="#v0.1.1">Gnosi v0.1.1</a></h2><span class="release-badge">Stable</span></div>
+          <time class="release-date" datetime="2026-06-18">2026-06-18</time>
+        </div>
+        <div class="section-grid"></div>
+        <p class="release-link"><a href="https://github.com/ismigar/Gnosi/releases/tag/v0.1.1" target="_blank" rel="noopener noreferrer">Download this version</a></p>
+      </article>
+      <!-- release-history:end -->
+      </div>
     </main>
 
     <footer class="gnosi-shell-footer">
@@ -207,7 +222,7 @@
             <a href="changelog.html">Changelog</a>
             <a href="/engineering/">Engineering docs</a>
             <a href="https://github.com/ismigar/Gnosi/issues" target="_blank" rel="noreferrer">Issues</a>
-            <a href="index.html#colaborar">Support the project</a>
+            <a href="index.html#community">Support the project</a>
           </div>
           <div class="footer-col">
             <h4>Author</h4>

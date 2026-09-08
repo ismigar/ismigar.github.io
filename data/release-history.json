@@ -1,0 +1,553 @@
+{
+  "labels": {
+    "en": {
+      "highlights": "Highlights",
+      "improvements": "Improvements",
+      "fixes": "Fixes",
+      "stable": "Stable",
+      "prerelease": "Release candidate",
+      "download": "Download this version"
+    },
+    "ca": {
+      "highlights": "Destacats",
+      "improvements": "Millores",
+      "fixes": "Correccions",
+      "stable": "Estable",
+      "prerelease": "Versió candidata",
+      "download": "Descarrega aquesta versió"
+    },
+    "es": {
+      "highlights": "Destacados",
+      "improvements": "Mejoras",
+      "fixes": "Correcciones",
+      "stable": "Estable",
+      "prerelease": "Versión candidata",
+      "download": "Descargar esta versión"
+    }
+  },
+  "releases": [
+    {
+      "version": "2.0.6",
+      "date": "2026-08-26",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v2.0.6",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [
+            "Browser navigation and API routes now respect the active Vault, keeping each context isolated."
+          ],
+          "improvements": [
+            "Contextual focus indicators once again make the active element clear."
+          ],
+          "fixes": [
+            "Windows packaging isolates its Python environment and enables long paths to avoid conflicts with other processes.",
+            "Contextual tooltips close correctly when menus open, and view drafts can be cancelled without stale state."
+          ]
+        },
+        "ca": {
+          "highlights": [
+            "La navegació web i les rutes de l'API respecten ara el Vault actiu per mantenir cada context aïllat."
+          ],
+          "improvements": [
+            "Els indicadors de focus contextual tornen a mostrar amb claredat quin element està actiu."
+          ],
+          "fixes": [
+            "L'empaquetat de Windows aïlla l'entorn Python i prepara rutes llargues per evitar conflictes amb altres processos.",
+            "Els tooltips contextuals es tanquen correctament en obrir menús i els esborranys de vista es poden cancel·lar sense residus."
+          ]
+        },
+        "es": {
+          "highlights": [
+            "La navegación web y las rutas de la API respetan ahora el Vault activo para mantener cada contexto aislado."
+          ],
+          "improvements": [
+            "Los indicadores de foco contextual vuelven a mostrar con claridad qué elemento está activo."
+          ],
+          "fixes": [
+            "El empaquetado de Windows aísla su entorno Python y habilita rutas largas para evitar conflictos con otros procesos.",
+            "Los tooltips contextuales se cierran correctamente al abrir menús y los borradores de vista se pueden cancelar sin estado residual."
+          ]
+        }
+      }
+    },
+    {
+      "version": "2.0.5",
+      "date": "2026-08-25",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v2.0.5",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [],
+          "improvements": [
+            "Release tags are now checked against the packaged version, localized notes and changelog before any platform build starts."
+          ],
+          "fixes": [
+            "Updated desktop and backend dependencies improve compatibility and release reliability across macOS, Windows and Linux."
+          ]
+        },
+        "ca": {
+          "highlights": [],
+          "improvements": [
+            "Els tags de release es comproven ara amb la versió empaquetada, les notes localitzades i el changelog abans d'iniciar cap build de plataforma."
+          ],
+          "fixes": [
+            "Les dependències actualitzades de l'escriptori i el backend milloren la compatibilitat i la fiabilitat de les releases a macOS, Windows i Linux."
+          ]
+        },
+        "es": {
+          "highlights": [],
+          "improvements": [
+            "Las etiquetas de release se comprueban ahora con la versión empaquetada, las notas localizadas y el changelog antes de iniciar cualquier build de plataforma."
+          ],
+          "fixes": [
+            "Las dependencias actualizadas del escritorio y el backend mejoran la compatibilidad y la fiabilidad de las releases en macOS, Windows y Linux."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.0.7",
+      "date": "2026-08-19",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v1.0.7",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [],
+          "improvements": [
+            "Secondary capabilities now activate per Vault as built-in plugins. Existing Vaults migrate to core-only mode without losing data or settings; sharing, mail sync, publishing and user automations stay paused until reactivated."
+          ],
+          "fixes": [
+            "Fixed Gallery database view rendering when displaying authorship properties."
+          ]
+        },
+        "ca": {
+          "highlights": [],
+          "improvements": [
+            "Les funcionalitats secundàries ara s'activen per Vault com a plugins integrats. Els Vaults existents migren al mode de només nucli sense perdre dades ni configuració; la compartició, la sincronització de correu, la publicació i les automatitzacions d'usuari queden pausades fins que es reactivin."
+          ],
+          "fixes": [
+            "S'ha corregit el renderitzat de la vista de Galeria a les bases de dades quan es mostren camps d'autoria."
+          ]
+        },
+        "es": {
+          "highlights": [],
+          "improvements": [
+            "Las funciones secundarias ahora se activan por Vault como plugins integrados. Los Vaults existentes migran al modo de solo núcleo sin perder datos ni configuración; los enlaces compartidos, la sincronización de correo, la publicación y las automatizaciones de usuario quedan en pausa hasta que se reactiven."
+          ],
+          "fixes": [
+            "Se ha corregido el renderizado de la vista de Galería en las bases de datos al mostrar campos de autoría."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.0.6",
+      "date": "2026-08-19",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v1.0.6",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": [
+            "Fixed local data directory fallbacks and release version synchronization across desktop packaging manifests."
+          ]
+        },
+        "ca": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": [
+            "S'ha corregit el directori de dades locals i la sincronització de versions de la versió 1.0.6 a tots els manifests d'empaquetat."
+          ]
+        },
+        "es": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": [
+            "Se ha corregido el directorio de datos locales y la sincronización de versiones de la versión 1.0.6 en todos los manifiestos de empaquetado."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.0.3",
+      "date": "2026-08-15",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v1.0.3",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [],
+          "improvements": [
+            "The native desktop menu now follows Gnosi’s language and includes Settings, Check for Updates and standard macOS actions."
+          ],
+          "fixes": [
+            "A new window can now be opened after the last Gnosi window is closed.",
+            "Production builds no longer expose reload actions or developer tools."
+          ]
+        },
+        "ca": {
+          "highlights": [],
+          "improvements": [
+            "El menú natiu de l’aplicació d’escriptori segueix ara l’idioma de Gnosi i incorpora Configuració, Cerca actualitzacions i les accions estàndard de macOS."
+          ],
+          "fixes": [
+            "Ara es pot obrir una finestra nova després de tancar l’última finestra de Gnosi.",
+            "Les versions de producció ja no mostren les accions de recàrrega ni les eines de desenvolupament."
+          ]
+        },
+        "es": {
+          "highlights": [],
+          "improvements": [
+            "El menú nativo de la aplicación de escritorio sigue ahora el idioma de Gnosi e incluye Configuración, Buscar actualizaciones y las acciones estándar de macOS."
+          ],
+          "fixes": [
+            "Ahora se puede abrir una ventana nueva después de cerrar la última ventana de Gnosi.",
+            "Las versiones de producción ya no muestran las acciones de recarga ni las herramientas de desarrollo."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.0.2",
+      "date": "2026-08-15",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v1.0.2",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [],
+          "improvements": [
+            "The desktop update notice is now smaller and quieter, and it surfaces errors from user-initiated actions."
+          ],
+          "fixes": [
+            "On macOS, the update action now downloads the correct official DMG instead of offering a restart that ad-hoc signatures cannot complete.",
+            "Release history no longer opens automatically when the application starts or before an update download."
+          ]
+        },
+        "ca": {
+          "highlights": [],
+          "improvements": [
+            "L’avís d’actualització d’escriptori és ara més petit i discret, i mostra els errors iniciats per l’usuari."
+          ],
+          "fixes": [
+            "A macOS, l’acció d’actualització descarrega ara el DMG oficial correcte en lloc d’oferir un reinici que les signatures ad hoc no poden completar.",
+            "L’historial de versions ja no s’obre automàticament en iniciar l’aplicació ni abans de descarregar una actualització."
+          ]
+        },
+        "es": {
+          "highlights": [],
+          "improvements": [
+            "El aviso de actualización de escritorio es ahora más pequeño y discreto, y muestra los errores de las acciones iniciadas por el usuario."
+          ],
+          "fixes": [
+            "En macOS, la acción de actualización descarga ahora el DMG oficial correcto en lugar de ofrecer un reinicio que las firmas ad hoc no pueden completar.",
+            "El historial de versiones ya no se abre automáticamente al iniciar la aplicación ni antes de descargar una actualización."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.0.1",
+      "date": "2026-08-15",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v1.0.1",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": [
+            "The Gnosi icon now shows a centered white G with the correct blue margin in the desktop application and on the web."
+          ]
+        },
+        "ca": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": [
+            "La icona de Gnosi mostra ara una G blanca centrada, amb el marge blau correcte, a l’aplicació d’escriptori i al web."
+          ]
+        },
+        "es": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": [
+            "El icono de Gnosi muestra ahora una G blanca centrada, con el margen azul correcto, en la aplicación de escritorio y en la web."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-08-15",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v1.0.0",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [
+            "Gnosi 1.0 brings sources, evidence notes, connected synthesis and citation handoff together in one local-first research workspace.",
+            "Assistant responses can link supported claims to exact Vault, Reader or web sources."
+          ],
+          "improvements": [
+            "A multilingual Research Starter Workspace demonstrates the complete path without requiring an AI provider or external account.",
+            "Vault inventories return complete, paginated and deduplicated results without unnecessary model calls.",
+            "Background analyses can be refreshed, resumed or cancelled, with bounded retries and recovery after a restart.",
+            "Response details expose the plan, privacy boundary, evidence, verification status and processing time."
+          ],
+          "fixes": [
+            "Vault requests no longer repeat the same tools until they time out or exhaust the recursion limit.",
+            "Failed or incomplete requests now preserve useful diagnostics and offer clear recovery actions."
+          ]
+        },
+        "ca": {
+          "highlights": [
+            "Gnosi 1.0 reuneix fonts, notes d’evidència, síntesi connectada i transferència de citacions en un únic espai de recerca local-first.",
+            "Les respostes de l’assistent poden vincular les afirmacions fonamentades amb fonts exactes del Vault, el Lector o el web."
+          ],
+          "improvements": [
+            "Un espai inicial de recerca multilingüe mostra tot el recorregut sense exigir cap proveïdor d’IA ni compte extern.",
+            "Els inventaris del Vault retornen resultats complets, paginats i deduplicats sense crides innecessàries al model.",
+            "Les anàlisis en segon pla es poden actualitzar, reprendre o cancel·lar, amb reintents limitats i recuperació després d’un reinici.",
+            "Els detalls de cada resposta mostren el pla, el límit de privacitat, l’evidència, l’estat de verificació i el temps de processament."
+          ],
+          "fixes": [
+            "Les peticions al Vault ja no repeteixen les mateixes eines fins que s’esgota el temps o el límit de recursió.",
+            "Les peticions fallides o incompletes conserven diagnòstics útils i ofereixen accions clares de recuperació."
+          ]
+        },
+        "es": {
+          "highlights": [
+            "Gnosi 1.0 reúne fuentes, notas de evidencia, síntesis conectada y transferencia de citas en un único espacio de investigación local-first.",
+            "Las respuestas del asistente pueden vincular las afirmaciones fundamentadas con fuentes exactas del Vault, el Lector o la web."
+          ],
+          "improvements": [
+            "Un espacio inicial de investigación multilingüe muestra todo el recorrido sin exigir un proveedor de IA ni una cuenta externa.",
+            "Los inventarios del Vault devuelven resultados completos, paginados y sin duplicados, sin llamadas innecesarias al modelo.",
+            "Los análisis en segundo plano se pueden actualizar, reanudar o cancelar, con reintentos limitados y recuperación después de un reinicio.",
+            "Los detalles de cada respuesta muestran el plan, el límite de privacidad, la evidencia, el estado de verificación y el tiempo de procesamiento."
+          ],
+          "fixes": [
+            "Las peticiones al Vault ya no repiten las mismas herramientas hasta agotar el tiempo o el límite de recursión.",
+            "Las peticiones fallidas o incompletas conservan diagnósticos útiles y ofrecen acciones claras de recuperación."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.0.0-rc.3",
+      "date": "2026-08-14",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v1.0.0-rc.3",
+      "channel": "prerelease",
+      "sections": {
+        "en": {
+          "highlights": [
+            "Create Vaults from an official template repository directly in the application.",
+            "Plugins share a repository experience with verifiable provenance information."
+          ],
+          "improvements": [
+            "Official indexes and packages are verified with SHA-256 and Ed25519 signatures before installation.",
+            "Vaults and plugins can be exported as filtered packages and prepared for moderated publishing."
+          ],
+          "fixes": []
+        },
+        "ca": {
+          "highlights": [
+            "Crea Vaults des d'un repositori oficial de plantilles directament des de l'aplicació.",
+            "Els plugins comparteixen una experiència de repositori amb informació de procedència verificable."
+          ],
+          "improvements": [
+            "Els índexs i paquets oficials es verifiquen amb SHA-256 i signatures Ed25519 abans d'instal·lar-los.",
+            "Els Vaults i plugins es poden exportar com a paquets filtrats i preparar per a una publicació moderada."
+          ],
+          "fixes": []
+        },
+        "es": {
+          "highlights": [
+            "Crea Vaults desde un repositorio oficial de plantillas directamente en la aplicación.",
+            "Los plugins comparten una experiencia de repositorio con información de procedencia verificable."
+          ],
+          "improvements": [
+            "Los índices y paquetes oficiales se verifican con SHA-256 y firmas Ed25519 antes de instalarlos.",
+            "Los Vaults y plugins se pueden exportar como paquetes filtrados y preparar para una publicación moderada."
+          ],
+          "fixes": []
+        }
+      }
+    },
+    {
+      "version": "1.0.0-rc.1",
+      "date": "2026-08-04",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v1.0.0-rc.1",
+      "channel": "prerelease",
+      "sections": {
+        "en": {
+          "highlights": [
+            "Settings are organized into clearer sections and tabs.",
+            "A new engineering documentation portal makes the system easier to understand and maintain."
+          ],
+          "improvements": [
+            "The knowledge graph has clearer edges, loading feedback and more focused hover relationships.",
+            "Vault navigation and page controls are more consistent and easier to identify."
+          ],
+          "fixes": [
+            "Several visual inconsistencies in Settings have been corrected.",
+            "Expanded and selected interface states are preserved more reliably."
+          ]
+        },
+        "ca": {
+          "highlights": [
+            "La configuració s'organitza en seccions i pestanyes més clares.",
+            "Un nou portal de documentació d'enginyeria facilita entendre i mantenir el sistema."
+          ],
+          "improvements": [
+            "El graf de coneixement té arestes més clares, millor informació de càrrega i relacions enfocades en passar-hi el cursor.",
+            "La navegació del coneixement i els controls de pàgina són més coherents i fàcils d'identificar."
+          ],
+          "fixes": [
+            "S'han corregit diverses inconsistències visuals de la configuració.",
+            "Els estats expandits i seleccionats de la interfície es conserven amb més fiabilitat."
+          ]
+        },
+        "es": {
+          "highlights": [
+            "La configuración se organiza en secciones y pestañas más claras.",
+            "Un nuevo portal de documentación de ingeniería facilita comprender y mantener el sistema."
+          ],
+          "improvements": [
+            "El grafo de conocimiento tiene aristas más claras, mejor información de carga y relaciones enfocadas al pasar el cursor.",
+            "La navegación del conocimiento y los controles de página son más coherentes y fáciles de identificar."
+          ],
+          "fixes": [
+            "Se han corregido varias inconsistencias visuales de la configuración.",
+            "Los estados expandidos y seleccionados de la interfaz se conservan con mayor fiabilidad."
+          ]
+        }
+      }
+    },
+    {
+      "version": "0.3.0-rc.1",
+      "date": "2026-08-04",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v0.3.0-rc.1",
+      "channel": "prerelease",
+      "sections": {
+        "en": {
+          "highlights": [
+            "First release candidate with desktop packages for macOS, Windows and Linux."
+          ],
+          "improvements": [
+            "Desktop update detection and installation foundations are included.",
+            "Official plugin packages and their distribution index are included with releases."
+          ],
+          "fixes": []
+        },
+        "ca": {
+          "highlights": [
+            "Primera versió candidata amb paquets d'escriptori per a macOS, Windows i Linux."
+          ],
+          "improvements": [
+            "Inclou les bases de detecció i instal·lació d'actualitzacions d'escriptori.",
+            "Les versions inclouen els paquets oficials de plugins i el seu índex de distribució."
+          ],
+          "fixes": []
+        },
+        "es": {
+          "highlights": [
+            "Primera versión candidata con paquetes de escritorio para macOS, Windows y Linux."
+          ],
+          "improvements": [
+            "Incluye las bases de detección e instalación de actualizaciones de escritorio.",
+            "Las versiones incluyen los paquetes oficiales de plugins y su índice de distribución."
+          ],
+          "fixes": []
+        }
+      }
+    },
+    {
+      "version": "1.0.0-rc.2",
+      "date": "2026-08-03",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v1.0.0-rc.2",
+      "channel": "prerelease",
+      "sections": {
+        "en": {
+          "highlights": [
+            "Desktop applications now use the official Gnosi icon on macOS, Windows and Linux."
+          ],
+          "improvements": [
+            "Release builds verify the macOS signature, application icon and packaged interface before uploading installers."
+          ],
+          "fixes": [
+            "The macOS application bundle is fully sealed so the system no longer reports it as damaged.",
+            "Desktop installers now include and load the complete Gnosi interface."
+          ]
+        },
+        "ca": {
+          "highlights": [
+            "Les aplicacions d'escriptori ara utilitzen la icona oficial de Gnosi a macOS, Windows i Linux."
+          ],
+          "improvements": [
+            "Les compilacions de release verifiquen la signatura de macOS, la icona de l'aplicació i la interfície empaquetada abans de pujar els instal·ladors."
+          ],
+          "fixes": [
+            "El paquet de l'aplicació per a macOS queda completament segellat i el sistema ja no l'identifica com a malmès.",
+            "Els instal·ladors d'escriptori ara inclouen i carreguen la interfície completa de Gnosi."
+          ]
+        },
+        "es": {
+          "highlights": [
+            "Las aplicaciones de escritorio ahora utilizan el icono oficial de Gnosi en macOS, Windows y Linux."
+          ],
+          "improvements": [
+            "Las compilaciones de release verifican la firma de macOS, el icono de la aplicación y la interfaz empaquetada antes de subir los instaladores."
+          ],
+          "fixes": [
+            "El paquete de la aplicación para macOS queda completamente sellado y el sistema ya no lo identifica como dañado.",
+            "Los instaladores de escritorio ahora incluyen y cargan la interfaz completa de Gnosi."
+          ]
+        }
+      }
+    },
+    {
+      "version": "0.2.0",
+      "date": "2026-07-03",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v0.2.0",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": []
+        },
+        "ca": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": []
+        },
+        "es": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": []
+        }
+      }
+    },
+    {
+      "version": "0.1.1",
+      "date": "2026-06-18",
+      "url": "https://github.com/ismigar/Gnosi/releases/tag/v0.1.1",
+      "channel": "stable",
+      "sections": {
+        "en": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": []
+        },
+        "ca": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": []
+        },
+        "es": {
+          "highlights": [],
+          "improvements": [],
+          "fixes": []
+        }
+      }
+    }
+  ]
+}
