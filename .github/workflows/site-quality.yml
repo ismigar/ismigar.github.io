@@ -30,7 +30,7 @@ jobs:
         run: |
           node --check navigation.js
           node --check release-history.mjs
-          node --test tests/release-history.test.mjs
+          node --test tests/release-history.test.mjs tests/learn.test.mjs
 
       - name: Verify published release history
         run: python scripts/sync_release_history.py --check
