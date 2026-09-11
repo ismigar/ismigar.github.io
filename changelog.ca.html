@@ -39,8 +39,9 @@
       .release-title a { color: inherit; text-decoration: none; }
       .release-title a:hover { text-decoration: underline; }
       .release-link { margin: 1.5rem 0 0; }
-      .release-link a { color: var(--gnosi-primary); }
+      .release-link a { color: var(--gnosi-primary); font-weight: 700; }
       .release-link a:hover { color: var(--gnosi-primary-dark); }
+      .release-link a::after { content: " ↓"; color: var(--gnosi-primary); }
       @media (max-width: 600px) { .release-card { padding: 1.25rem; } }
     </style>
   </head>
