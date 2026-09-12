@@ -21,7 +21,12 @@ for (const [suffix, path] of [['', ''], ['.ca', 'ca/'], ['.es', 'es/']]) {
   for (const stem of ['index', 'changelog', 'download/index']) {
     test(`${stem}${suffix} links to the matching help language`, () => {
       const html = readFileSync(new URL(`../${stem}${suffix}.html`, import.meta.url), 'utf8');
-      assert.ok(html.includes(`href="/learn/${path}"`));
+      const links = [...html.matchAll(new RegExp(`<a\\b[^>]*href="/learn/${path}"[^>]*>`, 'g'))];
+      assert.ok(links.length > 0);
+      for (const [link] of links) {
+        assert.match(link, /target="_blank"/);
+        assert.match(link, /rel="noopener noreferrer"/);
+      }
     });
   }
 }
