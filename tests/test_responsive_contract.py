@@ -9,6 +9,7 @@ LOCALIZED_PAGES = {
     "index.html": "Open navigation",
     "index.ca.html": "Obre la navegació",
     "index.es.html": "Abrir la navegación",
+    "index.fr.html": "Ouvrir la navigation",
 }
 
 
@@ -51,6 +52,7 @@ class ResponsiveContractTests(unittest.TestCase):
             ("index.html", "EN"),
             ("index.ca.html", "CA"),
             ("index.es.html", "ES"),
+            ("index.fr.html", "FR"),
         ):
             source = (ROOT / filename).read_text(encoding="utf-8")
             language_menu = source.split('<div class="lang-switch"', 1)[1].split(
@@ -69,6 +71,7 @@ class ResponsiveContractTests(unittest.TestCase):
             "index.html": "From source to manuscript, with your knowledge always yours.",
             "index.ca.html": "De la font al manuscrit, amb el coneixement sempre teu.",
             "index.es.html": "De la fuente al manuscrito, con el conocimiento siempre tuyo.",
+            "index.fr.html": "De la source au manuscrit, avec vos connaissances toujours à vous.",
         }
 
         for filename, headline in expected_headlines.items():
@@ -94,6 +97,7 @@ class ResponsiveContractTests(unittest.TestCase):
             "index.html": "gnosi-teaser-en.mp4",
             "index.ca.html": "gnosi-teaser-ca.mp4",
             "index.es.html": "gnosi-teaser-es.mp4",
+            "index.fr.html": "gnosi-teaser-en.mp4",
         }
 
         for filename, video_asset in expected_assets.items():
@@ -122,7 +126,7 @@ class ResponsiveContractTests(unittest.TestCase):
         self.assertIn("eventParameters.event_timeout = 600", source)
 
     def test_download_chooser_is_localized_and_platform_specific(self):
-        for filename in ("index.html", "index.ca.html", "index.es.html"):
+        for filename in ("index.html", "index.ca.html", "index.es.html", "index.fr.html"):
             source = (ROOT / "download" / filename).read_text(encoding="utf-8")
             with self.subTest(filename=filename):
                 self.assertIn('data-release-asset="mac-arm"', source)

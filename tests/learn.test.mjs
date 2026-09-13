@@ -17,8 +17,13 @@ for (const locale of ['', 'ca/', 'es/', 'fr/']) {
   });
 }
 
-for (const [suffix, path] of [['', ''], ['.ca', 'ca/'], ['.es', 'es/']]) {
-  for (const stem of ['index', 'changelog', 'download/index']) {
+for (const [suffix, path, stems] of [
+  ['', '', ['index', 'changelog', 'download/index']],
+  ['.ca', 'ca/', ['index', 'changelog', 'download/index']],
+  ['.es', 'es/', ['index', 'changelog', 'download/index']],
+  ['.fr', 'fr/', ['index', 'download/index']],
+]) {
+  for (const stem of stems) {
     test(`${stem}${suffix} links to the matching help language`, () => {
       const html = readFileSync(new URL(`../${stem}${suffix}.html`, import.meta.url), 'utf8');
       const links = [...html.matchAll(new RegExp(`<a\\b[^>]*href="/learn/${path}"[^>]*>`, 'g'))];
