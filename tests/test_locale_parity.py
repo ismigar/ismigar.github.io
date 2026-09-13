@@ -23,10 +23,13 @@ class LocaleParityTests(unittest.TestCase):
         self.assertEqual(len(errors), 1)
         self.assertIn("index.html", errors[0])
         self.assertIn("index.es.html", errors[0])
+        self.assertIn("index.fr.html", errors[0])
 
     def test_all_locale_pages_can_change_together(self):
         self.assertEqual(
-            validate_change_set({"index.html", "index.ca.html", "index.es.html"}),
+            validate_change_set(
+                {"index.html", "index.ca.html", "index.es.html", "index.fr.html"}
+            ),
             [],
         )
 

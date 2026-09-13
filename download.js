@@ -48,6 +48,17 @@
       showAll: "¿Buscas otro sistema operativo? ↓",
       hideAll: "Ocultar otros sistemas operativos ↑",
     },
+    fr: {
+      started: "✓ Téléchargement démarré !",
+      downloading: "Démarrage du téléchargement…",
+      loading: "Recherche de l’installateur…",
+      ready: (version) => `Dernière version : ${version}`,
+      fallback: "Impossible de trouver les installateurs.",
+      download: "Télécharger l’installateur",
+      detectedTag: "✓ Détecté pour votre système",
+      showAll: "Vous cherchez un autre système d’exploitation ? ↓",
+      hideAll: "Masquer les autres systèmes d’exploitation ↑",
+    },
   };
   const copy = translations[locale] || translations.en;
 
@@ -98,7 +109,8 @@
   if (window.location.pathname.includes("/download/")) {
     const isCa = window.location.pathname.includes(".ca.");
     const isEs = window.location.pathname.includes(".es.");
-    const targetHome = isCa ? "../index.ca.html?download=1" : isEs ? "../index.es.html?download=1" : "../index.html?download=1";
+    const isFr = window.location.pathname.includes(".fr.");
+    const targetHome = isCa ? "../index.ca.html?download=1" : isEs ? "../index.es.html?download=1" : isFr ? "../index.fr.html?download=1" : "../index.html?download=1";
     window.location.replace(targetHome);
     return;
   }

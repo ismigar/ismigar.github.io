@@ -11,7 +11,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCALIZED_PAGES = ("index.html", "index.ca.html", "index.es.html")
+LOCALIZED_PAGES = ("index.html", "index.ca.html", "index.es.html", "index.fr.html")
 STRUCTURAL_ATTRIBUTES = {
     "class",
     "id",
@@ -123,7 +123,7 @@ def main() -> int:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
 
-    print("Locale parity verified for English, Catalan, and Spanish landing pages")
+    print("Locale parity verified for English, Catalan, Spanish, and French landing pages")
     return 0
 
 

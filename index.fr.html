@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gnosi — De la source au manuscrit, avec vos connaissances toujours à vous</title>
+    <meta name="description" content="Gnosi est un espace de recherche local-first et open source qui relie sources, preuves, notes et citations vérifiables sans enfermer vos connaissances dans un SaaS." />
+    <meta name="theme-color" content="#101d27" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:title" content="Gnosi — De la source au manuscrit" />
+    <meta property="og:description" content="Un espace local-first et open source pour les sources, les notes, les preuves et les citations vérifiables." />
+    <meta property="og:url" content="https://gnosi.temenosismael.org/index.fr.html" />
+    <meta property="og:image" content="https://gnosi.temenosismael.org/assets/gnosi-app-dashboard-ca.png" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="720" />
+    <meta property="og:image:alt" content="L’application réelle de Gnosi affichant l’espace de connaissances local" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Gnosi — De la source au manuscrit" />
+    <meta name="twitter:description" content="Un espace local-first et open source pour les sources, les notes, les preuves et les citations vérifiables." />
+    <meta name="twitter:image" content="https://gnosi.temenosismael.org/assets/gnosi-app-dashboard-ca.png" />
+    <link rel="canonical" href="https://gnosi.temenosismael.org/index.fr.html" />
+    <link rel="alternate" hreflang="en" href="https://gnosi.temenosismael.org/" />
+    <link rel="alternate" hreflang="ca" href="https://gnosi.temenosismael.org/index.ca.html" />
+    <link rel="alternate" hreflang="es" href="https://gnosi.temenosismael.org/index.es.html" />
+    <link rel="alternate" hreflang="fr" href="https://gnosi.temenosismael.org/index.fr.html" />
+    <link rel="alternate" hreflang="x-default" href="https://gnosi.temenosismael.org/" />
+    <link rel="stylesheet" href="styles.css?v=1.0.6" />
+    <link rel="stylesheet" href="shell.css" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <script src="analytics.js"></script>
+    <script src="navigation.js" defer></script>
+    <script src="download.js?v=1.1.2" defer></script>
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Gnosi","applicationCategory":"EducationalApplication","operatingSystem":"macOS, Windows, Linux","url":"https://gnosi.temenosismael.org/index.fr.html","downloadUrl":"https://gnosi.temenosismael.org/download/index.fr.html","license":"https://www.gnu.org/licenses/agpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}
+    </script>
+    <script>
+      (function () {
+        var language = navigator.language || navigator.userLanguage || "en";
+        var path = window.location.pathname;
+        var directVisit = !document.referrer || !document.referrer.includes(window.location.hostname);
+        if (window.location.protocol !== "file:" && directVisit && (path.endsWith("index.html") || path === "/" || path.endsWith("/"))) {
+          if (language.startsWith("ca")) window.location.replace("index.ca.html");
+          if (language.startsWith("es")) window.location.replace("index.es.html");
+          if (language.startsWith("fr")) window.location.replace("index.fr.html");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <nav class="navbar" aria-label="Navigation principale">
+      <div class="nav-container">
+        <a href="#top" class="brand" aria-label="Accueil de Gnosi"><span class="brand-logo">G</span><span class="logo">Gnosi</span></a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" aria-label="Ouvrir la navigation" data-label-open="Ouvrir la navigation" data-label-close="Fermer la navigation"><span class="nav-toggle-icon" aria-hidden="true"></span></button>
+        <div class="nav-links" id="site-navigation">
+          <a href="#demo">Vidéo</a>
+          <a href="#workflow">Flux de recherche</a>
+          <a href="#why-gnosi">Pourquoi Gnosi</a>
+          <a href="#download">Téléchargement</a>
+          <a href="#community">Communauté</a>
+          <a href="changelog.html">Historique (EN)</a>
+          <a href="/learn/fr/" target="_blank" rel="noopener noreferrer">Apprendre</a><a href="/engineering/">Documentation (EN)</a>
+          <a href="https://github.com/ismigar/Gnosi" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+        <div class="lang-switch" aria-label="Langue">
+          <a href="index.html">EN</a><a href="index.ca.html">CA</a><a href="index.es.html">ES</a><span class="active" aria-current="true">FR</span>
+        </div>
+      </div>
+    </nav>
+
+    <main id="top">
+      <section class="hero research-hero">
+        <div class="hero-content">
+          <span class="badge agpl">Local-first · Open source · AGPL-3.0</span>
+          <h1>De la source au manuscrit, avec vos connaissances toujours à vous.</h1>
+          <p class="subtitle">Lisez, annotez, reliez et citez des PDF, des sites web et des livres dans un espace local unique. Vos notes et vos données restent en Markdown portable.</p>
+          <div class="hero-cta">
+            <a href="download/index.fr.html" class="btn btn-primary" data-download-kind="desktop" data-locale="fr">Télécharger pour votre ordinateur</a>
+            <a href="#demo" class="btn btn-secondary">Découvrir Gnosi en 29 secondes</a>
+          </div>
+          <div class="trust-row" aria-label="Garanties du projet"><span>✓ Vos fichiers</span><span>✓ Formats ouverts</span><span>✓ Sans compte ni abonnement</span></div>
+        </div>
+        <figure class="product-shot">
+          <img src="assets/gnosi-app-dashboard-ca.png" width="1280" height="720" alt="L’application réelle de Gnosi avec un vault local, un graphe de connaissances, des contacts, une messagerie, un calendrier et un lecteur de flux" fetchpriority="high" />
+        </figure>
+      </section>
+
+      <section id="demo" class="video-section" aria-labelledby="demo-title">
+        <div class="video-copy">
+          <span class="section-kicker">Gnosi en 29 secondes</span>
+          <h2 id="demo-title">Voyez comment les connaissances passent des sources à un espace connecté.</h2>
+          <p>Une courte visite du lecteur, du graphe et de l’espace de recherche de Gnosi. Sans compte, sans cloud obligatoire et sans dépendance.</p>
+          <div class="video-notes" aria-label="Points forts de la vidéo"><span>Interface réelle</span><span>Sans voix off</span><span>29 secondes</span></div>
+        </div>
+        <figure class="video-frame">
+          <video controls playsinline preload="metadata" poster="assets/video/gnosi-teaser-cover-en.jpg" aria-label="Vidéo de présentation de Gnosi">
+            <source src="assets/video/gnosi-teaser-en.mp4" type="video/mp4" />
+            <p>Votre navigateur ne peut pas lire cette vidéo. <a href="assets/video/gnosi-teaser-en.mp4">Ouvrez-la directement</a>.</p>
+          </video>
+          <figcaption>Interface en anglais · ambiance sonore</figcaption>
+        </figure>
+      </section>
+
+      <section id="why-gnosi" class="problem research-problem">
+        <div class="section-content">
+          <div class="section-header"><span class="section-kicker">Le problème que Gnosi résout</span><h2>Votre recherche est un flux, pas une pile d’applications.</h2><p>Des références dans un outil, des vues de projet dans un autre, des notes ailleurs et le texte final dans un quatrième éditeur. Le problème n’est pas de capturer plus de données, mais de conserver le chemin qui relie chaque affirmation à ses preuves.</p></div>
+          <div class="problem-grid">
+            <article class="problem-item"><div class="problem-icon">↔</div><h3>Travail en double</h3><p>La même source et les mêmes métadonnées copiées entre votre gestionnaire bibliographique, vos notes de lecture et votre projet.</p></article>
+            <article class="problem-item"><div class="problem-icon">⌁</div><h3>Preuves sans contexte</h3><p>Les surlignages et les idées se détachent de la page, du paragraphe ou du texte original qui les étaye.</p></article>
+            <article class="problem-item"><div class="problem-icon">□</div><h3>Connaissances sur terrain emprunté</h3><p>Une hausse de prix ou un changement de politique peut enfermer des années de recherche structurée derrière les règles d’un fournisseur.</p></article>
+          </div>
+          <div class="solution"><span class="solution-label">La réponse de Gnosi</span><h3>Une chaîne de responsabilité ouverte pour vos connaissances.</h3><p>Sources, preuves, notes, liens, vues de projet et citations restent connectés, tandis que les fichiers restent lisibles partout.</p></div>
+        </div>
+      </section>
+
+      <section id="workflow" class="workflow-section">
+        <div class="section-header"><span class="section-kicker">Parcours principal</span><h2>Un cycle de recherche complet en quatre étapes</h2><p>Commencez par votre propre matériel. L’IA peut aider, mais le flux n’en dépend jamais.</p></div>
+        <div class="workflow-grid">
+          <article class="workflow-card"><span>01</span><h3>Capturer ou importer</h3><p>Ajoutez des sources via DOI, ISBN, arXiv, PMID, BibTeX ou RIS. Enregistrez des pages web et ouvrez des PDF ou EPUB dans votre espace de travail.</p><small>Import compatible Zotero · Web Clipper</small></article>
+          <article class="workflow-card"><span>02</span><h3>Lire avec les preuves</h3><p>Annotez vos sources en conservant les citations liées à la page, au paragraphe, au chapitre ou à l’horodatage afin que les affirmations restent vérifiables.</p><small>Lecteur PDF/EPUB · Traçabilité</small></article>
+          <article class="workflow-card"><span>03</span><h3>Relier et structurer</h3><p>Transformez vos notes de lecture en synthèse. Utilisez les wikiliens, le graphe de connaissances, les bases de données, les tableaux, les frises et les jalons.</p><small>Markdown · Graphe · Vues de base de données</small></article>
+          <article class="workflow-card"><span>04</span><h3>Écrire et citer</h3><p>Insérez des citations Gnosi dynamiques dans Word ou LibreOffice et générez des bibliographies sans dupliquer vos bibliothèques.</p><small>CSL/citeproc · Word · LibreOffice</small></article>
+        </div>
+      </section>
+
+      <section id="capabilities" class="research-capabilities">
+        <div class="section-header"><span class="section-kicker">Conçu pour le travail réel</span><h2>La structure de Notion, les connexions d’Obsidian et une couche de recherche native</h2></div>
+        <div class="capability-grid">
+          <article><span class="capability-mark">A</span><h3>Les sources deviennent des preuves exploitables</h3><p>La gestion des références, les lecteurs, les annotations, les notes de lecture atomiques et les surlignages précis partagent un même contexte.</p></article>
+          <article><span class="capability-mark">B</span><h3>Les notes peuvent aussi être des données</h3><p>Les pages Markdown accueillent des champs typés, des relations, des formules, des agrégations et des vues en tableau, galerie, tableau Kanban, calendrier ou chronologie.</p></article>
+          <article><span class="capability-mark">C</span><h3>L’IA reste responsable</h3><p>Utilisez des modèles locaux ou cloud pour ingérer et interroger vos documents, tout en gardant la provenance claire et la synthèse sous contrôle humain.</p></article>
+        </div>
+        <details class="more-capabilities"><summary>Explorer l’écosystème Gnosi</summary><div><span>Graphe de connaissances</span><span>Planification de recherche</span><span>RSS et newsletters</span><span>IA multi-fournisseurs</span><span>Import Notion</span><span>Connecteurs</span><span>Messagerie et calendrier</span><span>Traduction et publication</span></div></details>
+      </section>
+
+      <section class="ownership-section">
+        <div><span class="section-kicker">Souveraineté dès la conception</span><h2>Votre espace de travail doit survivre à l’application.</h2><p>Gnosi utilise des fichiers standards comme source de vérité et des index reconstruisibles pour gagner en vitesse. Inspectez, copiez, versionnez et migrez vos connaissances quand vous le souhaitez.</p></div>
+        <ul><li><strong>Markdown + YAML</strong><span>Lisibles dans n’importe quel éditeur de texte et compatibles avec les outils de fichiers courants.</span></li><li><strong>Local-first</strong><span>L’usage personnel ne nécessite aucun compte cloud Gnosi.</span></li><li><strong>AGPL-3.0</strong><span>Un logiciel libre développé au grand jour.</span></li></ul>
+      </section>
+
+      <section id="download" class="download-section">
+        <div class="section-header"><span class="section-kicker">Essayer Gnosi</span><h2>L’application de bureau d’abord. Auto-hébergez-la quand vous en avez besoin.</h2><p>Le chemin le plus rapide est la version de bureau. Les déploiements natif et Docker restent disponibles pour les utilisateurs techniques et les serveurs.</p></div>
+        <div class="download-grid">
+          <article class="download-card featured"><span class="download-label">Recommandé</span><div class="download-icon">G</div><h3>Application de bureau</h3><p>Le backend est inclus. Le téléchargement détecte automatiquement votre système d’exploitation (Mac, Windows ou Linux).</p><a href="download/index.fr.html" class="btn btn-primary" data-download-kind="desktop" data-locale="fr">Télécharger Gnosi</a><small>Sur macOS : faites un clic droit → Ouvrir la première fois. Sur Linux : autorisez l’exécution (clic droit → Propriétés → Autoriser l’exécution comme programme) ou exécutez <code>chmod +x fichier.AppImage</code>.</small></article>
+          <article class="download-card"><span class="download-label">Pour le développement</span><h3>Exécution native</h3><p>Exécutez Python et Node directement sur l’hôte. Recommandé pour l’auto-hébergement et les contributions.</p><pre><code>git clone git@github.com:ismigar/Gnosi.git
+cd Gnosi/apps/gnosi</code></pre><a href="https://github.com/ismigar/Gnosi#quick-start" target="_blank" rel="noreferrer">Voir le guide d’installation native →</a></article>
+          <article class="download-card"><span class="download-label">Pour les serveurs</span><h3>Déploiement avec Docker</h3><p>Utilisez le déploiement tout-en-un compatible lorsque l’installation en conteneur convient mieux au serveur.</p><pre><code>docker compose up -d --build</code></pre><a href="https://github.com/ismigar/Gnosi#run-with-docker-optional" target="_blank" rel="noreferrer">Voir le guide Docker →</a></article>
+        </div>
+      </section>
+
+      <section id="community" class="community-section">
+        <div class="community-copy"><span class="section-kicker">Un outil personnel, partagé ouvertement</span><h2>Gnosi a été conçu pour un véritable flux de recherche.</h2><p>Le projet est né pour éviter de dupliquer les connaissances entre Notion, Obsidian et Mendeley tout en conservant les avantages de chacun. Il est partagé avec la communauté comme logiciel libre, sans prétendre être une entreprise achevée ni une solution universelle.</p><div class="community-actions"><a href="https://github.com/ismigar/Gnosi/issues/new?labels=feedback&amp;title=%5BFeedback%5D%20Ma%20premi%C3%A8re%20exp%C3%A9rience%20avec%20Gnosi" class="btn btn-primary" target="_blank" rel="noreferrer">Racontez-nous votre première expérience</a><a href="https://github.com/sponsors/ismigar" class="btn btn-secondary" target="_blank" rel="noreferrer">Soutenir le projet</a></div></div>
+        <aside class="feedback-card"><span>Commentaires utiles</span><h3>Dites-nous où la chaîne se rompt</h3><ol><li>Avez-vous pu installer et ouvrir Gnosi&nbsp;?</li><li>Avez-vous pu intégrer une vraie source&nbsp;?</li><li>Pouvez-vous revenir d’une note à sa preuve&nbsp;?</li><li>Avez-vous pu citer ou exporter votre travail&nbsp;?</li></ol></aside>
+      </section>
+
+      <section id="start" class="cta research-cta"><div class="cta-content"><span class="section-kicker">Sans compte. Sans abonnement.</span><h2>Emmenez une source de la lecture à la citation.</h2><p>Commencez avec un vault local et importez une vraie source. Les notes, les liens et les citations restent des fichiers sous votre contrôle.</p><div class="cta-buttons"><a href="download/index.fr.html" class="btn btn-primary btn-large" data-download-kind="desktop" data-locale="fr">Télécharger Gnosi</a><a href="https://github.com/ismigar/Gnosi" class="btn btn-secondary btn-large" target="_blank" rel="noreferrer">Voir le code source</a></div></div></section>
+    </main>
+
+    <footer class="gnosi-shell-footer"><div class="footer-content"><div class="footer-brand"><span class="brand"><span class="brand-logo">G</span><span class="logo">Gnosi</span></span><p>De la source au manuscrit, avec vos connaissances toujours à vous.</p></div><div class="footer-links"><div class="footer-col"><h4>Projet</h4><a href="https://github.com/ismigar/Gnosi" target="_blank" rel="noreferrer">GitHub</a><a href="changelog.html">Historique (EN)</a><a href="/learn/fr/" target="_blank" rel="noopener noreferrer">Apprendre</a><a href="/engineering/">Documentation technique (EN)</a><a href="https://github.com/ismigar/Gnosi/issues" target="_blank" rel="noreferrer">Problèmes</a></div><div class="footer-col"><h4>Auteur</h4><a href="https://github.com/ismigar" target="_blank" rel="noreferrer">GitHub</a><a href="https://temenosismael.org" target="_blank" rel="noreferrer">Web</a></div><div class="footer-col"><h4>Mentions légales</h4><a href="privacy.html">Politique de confidentialité</a><a href="https://github.com/ismigar/Gnosi/blob/main/LICENSE" target="_blank" rel="noreferrer">Licence AGPL-3.0</a></div></div></div><div class="footer-bottom"><p>© 2024–2026 Ismael Garcia Fernandez · Projet open source sous licence AGPL-3.0.</p></div></footer>
+  </body>
+</html>
