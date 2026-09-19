@@ -1,10 +1,10 @@
 (() => {
   // Static fallbacks if GitHub API rate-limits (HTTP 403) or network fails
   const FALLBACK_ASSETS = {
-    "mac-arm": "https://github.com/ismigar/Gnosi/releases/download/v1.0.7/Gnosi-1.0.7-arm64.dmg",
-    "mac-intel": "https://github.com/ismigar/Gnosi/releases/download/v1.0.7/Gnosi-1.0.7-x64.dmg",
-    windows: "https://github.com/ismigar/Gnosi/releases/download/v1.0.7/Gnosi-1.0.7-Setup.exe",
-    linux: "https://github.com/ismigar/Gnosi/releases/download/v1.0.7/Gnosi-1.0.7-x86_64.AppImage",
+    "mac-arm": "https://github.com/ismigar/Gnosi/releases/download/v3.0.4/Gnosi-3.0.4-arm64.dmg",
+    "mac-intel": "https://github.com/ismigar/Gnosi/releases/download/v3.0.4/Gnosi-3.0.4-x64.dmg",
+    windows: "https://github.com/ismigar/Gnosi/releases/download/v3.0.4/Gnosi-3.0.4-Setup.exe",
+    linux: "https://github.com/ismigar/Gnosi/releases/tag/v3.0.4",
   };
 
   const assetPatterns = {
@@ -92,6 +92,10 @@
   const detectedPlatform = detectPlatform();
 
   const triggerDirectDownload = (url) => {
+    if (url.includes("/releases/tag/")) {
+      window.location.href = url;
+      return;
+    }
     try {
       const iframe = document.createElement("iframe");
       iframe.style.display = "none";
