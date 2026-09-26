@@ -71,6 +71,9 @@ function marketplaceEnv(options: { failInsert?: boolean } = {}): {
           return statement;
         },
         async first() {
+          if (query.includes('WHERE id = ?') && !query.includes('marketplace_submission_chunks')) {
+            return submissions.find((row) => row.id === bound[0]) ?? null;
+          }
           if (query.includes('SELECT id, status')) {
             return submissions.find(
               (row) => row.kind === bound[0] && row.sha256 === bound[1],
@@ -92,8 +95,11 @@ function marketplaceEnv(options: { failInsert?: boolean } = {}): {
           return null;
         },
         async all() {
-          if (query.includes('FROM marketplace_submissions') && query.includes('LIMIT 100')) {
-            return { results: [...submissions].reverse() };
+          if (query.includes('FROM marketplace_submissions') && query.includes('LIMIT 101')) {
+            return { results: [...submissions]
+              .filter((row) => (bound[0] === 'all' || row.status === bound[0])
+                && (row.created_at < String(bound[2]) || (row.created_at === bound[2] && row.id < String(bound[4]))))
+              .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id)).slice(0, 101) };
           }
           if (query.includes('FROM marketplace_submission_chunks')) {
             return {
@@ -135,7 +141,7 @@ function marketplaceEnv(options: { failInsert?: boolean } = {}): {
         }
         if (statement.query.includes('UPDATE marketplace_submissions')) {
           const submission = submissions.find((row) => row.id === statement.bound[4]);
-          if (submission) {
+          if (submission && submission.status === 'quarantined') {
             submission.status = String(statement.bound[0]);
             submission.reviewed_at = String(statement.bound[1]);
             submission.reviewed_by = String(statement.bound[2]);
@@ -144,7 +150,8 @@ function marketplaceEnv(options: { failInsert?: boolean } = {}): {
         }
         if (statement.query.includes('DELETE FROM marketplace_submission_chunks')) {
           for (let index = chunks.length - 1; index >= 0; index -= 1) {
-            if (chunks[index].submission_id === statement.bound[0]) chunks.splice(index, 1);
+            if (chunks[index].submission_id === statement.bound[0]
+                && submissions.some((row) => row.id === statement.bound[1] && row.status === 'rejected' && row.reviewed_at === statement.bound[2])) chunks.splice(index, 1);
           }
         }
       }
@@ -290,5 +297,63 @@ describe('marketplace submission validation', () => {
       review_notes: 'Static review failed',
     });
     expect(state.chunks).toHaveLength(0);
+  });
+});
+
+describe('moderated release handoff', () => {
+  async function decide(env: Env, id: string, decision: string) {
+    const body = JSON.stringify({ decision, notes: 'Reviewed content and license' });
+    return worker.fetch(await moderationRequest(`/api/marketplace/submissions/${id}/decision`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': String(body.length) }, body,
+    }), env);
+  }
+
+  it('exports receipts only for approved templates and prevents decision reversal', async () => {
+    const state = marketplaceEnv();
+    const uploaded = await worker.fetch(submissionRequest('submission-secret', {
+      kind: 'vault-template', filename: 'study-1.0.0.gnosi-vault.zip',
+      metadata: JSON.stringify({ id: 'study', version: '1.0.0' }),
+    }), state.env);
+    const { submissionId } = await uploaded.json() as { submissionId: string };
+    const receiptUrl = `/api/marketplace/submissions/${submissionId}/receipt`;
+    expect((await worker.fetch(await moderationRequest(receiptUrl), state.env)).status).toBe(409);
+    expect((await worker.fetch(new Request(`https://growth.example.test${receiptUrl}`), state.env)).status).toBe(401);
+    expect((await decide(state.env, submissionId, 'approved')).status).toBe(200);
+    const receipt = await worker.fetch(await moderationRequest(receiptUrl), state.env);
+    expect(await receipt.json()).toMatchObject({ schemaVersion: 1, submissionId, status: 'approved',
+      sha256: state.submissions[0].sha256, reviewedBy: 'maintainer' });
+    expect((await decide(state.env, submissionId, 'rejected')).status).toBe(409);
+    expect(state.chunks).toHaveLength(1);
+  });
+
+  it('never resurrects a rejected package and keeps ingestion tokens out of review receipts', async () => {
+    const state = marketplaceEnv();
+    await worker.fetch(submissionRequest(), state.env);
+    const id = state.submissions[0].id;
+    expect((await decide(state.env, id, 'rejected')).status).toBe(200);
+    expect((await decide(state.env, id, 'approved')).status).toBe(409);
+    expect(state.chunks).toHaveLength(0);
+    const response = await worker.fetch(new Request(`https://growth.example.test/api/marketplace/submissions/${id}/receipt`, {
+      headers: { Authorization: 'Bearer submission-secret' },
+    }), state.env);
+    expect(response.status).toBe(401);
+  });
+
+  it('paginates ties without losing pending submissions and validates filters', async () => {
+    const state = marketplaceEnv();
+    await worker.fetch(submissionRequest(), state.env);
+    const seed = state.submissions[0];
+    for (let index = 0; index < 105; index += 1) state.submissions.push({ ...seed, id: crypto.randomUUID() });
+    const base = '/api/marketplace/submissions?status=quarantined';
+    const first = await worker.fetch(await moderationRequest(base), state.env);
+    const page = await first.json() as { submissions: { id: string }[]; nextCursor: string };
+    expect(page.submissions).toHaveLength(100);
+    const second = await worker.fetch(await moderationRequest(`${base}&cursor=${encodeURIComponent(page.nextCursor)}`), state.env);
+    const rest = await second.json() as { submissions: { id: string }[]; nextCursor: string | null };
+    expect(rest.submissions).toHaveLength(6);
+    expect(new Set([...page.submissions, ...rest.submissions].map((row) => row.id)).size).toBe(106);
+    expect(rest.nextCursor).toBeNull();
+    expect((await worker.fetch(await moderationRequest('/api/marketplace/submissions?status=wrong'), state.env)).status).toBe(400);
+    expect((await worker.fetch(await moderationRequest(`${base}&cursor=bad`), state.env)).status).toBe(400);
   });
 });

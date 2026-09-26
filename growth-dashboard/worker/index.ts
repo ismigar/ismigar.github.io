@@ -3,6 +3,7 @@ import {
   decideMarketplaceSubmission,
   downloadMarketplaceSubmission,
   listMarketplaceSubmissions,
+  marketplaceReviewReceipt,
   submitMarketplacePackage,
 } from './marketplace';
 import {
@@ -425,7 +426,13 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
   if (request.method === 'GET' && url.pathname === '/api/dashboard') return dashboard(request, env);
   if (request.method === 'GET' && url.pathname === '/api/marketplace/submissions') {
-    return listMarketplaceSubmissions(env);
+    return listMarketplaceSubmissions(env, request);
+  }
+  const marketplaceReceipt = url.pathname.match(
+    /^\/api\/marketplace\/submissions\/([0-9a-f-]{36})\/receipt$/,
+  );
+  if (request.method === 'GET' && marketplaceReceipt) {
+    return marketplaceReviewReceipt(env, marketplaceReceipt[1]);
   }
   const marketplacePackage = url.pathname.match(
     /^\/api\/marketplace\/submissions\/([0-9a-f-]{36})\/package$/,

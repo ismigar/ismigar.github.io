@@ -261,16 +261,61 @@ function publicSubmission(row: MarketplaceSubmissionRow): Record<string, unknown
   };
 }
 
-export async function listMarketplaceSubmissions(env: Env): Promise<Response> {
+export async function listMarketplaceSubmissions(env: Env, request?: Request): Promise<Response> {
+  const url = new URL(request?.url ?? 'https://localhost/');
+  const status = url.searchParams.get('status') ?? 'all';
+  if (!['all', 'quarantined', 'approved', 'rejected'].includes(status)) {
+    return json({ error: 'Invalid moderation filter' }, 400);
+  }
+  let beforeDate = '9999', beforeId = '';
+  const cursor = url.searchParams.get('cursor');
+  if (cursor) {
+    try {
+      const parsed = JSON.parse(atob(cursor));
+      if (typeof parsed.createdAt !== 'string' || !Number.isFinite(Date.parse(parsed.createdAt))
+          || typeof parsed.id !== 'string' || !SUBMISSION_ID.test(parsed.id)) throw new Error();
+      beforeDate = parsed.createdAt;
+      beforeId = parsed.id;
+    } catch {
+      return json({ error: 'Invalid moderation cursor' }, 400);
+    }
+  }
   try {
     const rows = await env.DB.prepare(
       `SELECT id, kind, filename, sha256, size_bytes, status, metadata_json,
               created_at, reviewed_at, reviewed_by, review_notes
        FROM marketplace_submissions
-       ORDER BY created_at DESC
-       LIMIT 100`,
-    ).all<MarketplaceSubmissionRow>();
-    return json({ submissions: rows.results.map(publicSubmission) });
+       WHERE (? = 'all' OR status = ?)
+         AND (created_at < ? OR (created_at = ? AND id < ?))
+       ORDER BY created_at DESC, id DESC
+       LIMIT 101`,
+    ).bind(status, status, beforeDate, beforeDate, beforeId).all<MarketplaceSubmissionRow>();
+    const page = rows.results.slice(0, 100);
+    const last = page[page.length - 1];
+    return json({
+      submissions: page.map(publicSubmission),
+      nextCursor: rows.results.length > 100 && last
+        ? btoa(JSON.stringify({ createdAt: last.created_at, id: last.id })) : null,
+    });
+  } catch {
+    return json({ error: 'Marketplace quarantine is temporarily unavailable' }, 503);
+  }
+}
+
+export async function marketplaceReviewReceipt(env: Env, submissionId: string): Promise<Response> {
+  if (!SUBMISSION_ID.test(submissionId)) return json({ error: 'Invalid submission id' }, 400);
+  try {
+    const row = await env.DB.prepare(
+      `SELECT * FROM marketplace_submissions WHERE id = ?`,
+    ).bind(submissionId).first<MarketplaceSubmissionRow>();
+    if (!row) return json({ error: 'Submission not found' }, 404);
+    if (row.status !== 'approved' || row.kind !== 'vault-template') {
+      return json({ error: 'A release receipt requires an approved Vault template' }, 409);
+    }
+    const { id, ...submission } = publicSubmission(row);
+    return new Response(JSON.stringify({ schemaVersion: 1, submissionId: id, ...submission }, null, 2), {
+      headers: { ...JSON_HEADERS, 'Content-Disposition': `attachment; filename="${submissionId}.review.json"` },
+    });
   } catch {
     return json({ error: 'Marketplace quarantine is temporarily unavailable' }, 503);
   }
@@ -366,34 +411,37 @@ export async function decideMarketplaceSubmission(
   } catch {
     return json({ error: 'Decision body must be valid JSON' }, 400);
   }
-  if (body.decision !== 'approved' && body.decision !== 'rejected') {
+  if (!body || typeof body !== 'object' || (body.decision !== 'approved' && body.decision !== 'rejected')) {
     return json({ error: 'Decision must be approved or rejected' }, 400);
   }
   const notes = typeof body.notes === 'string' ? body.notes.trim() : '';
-  if (notes.length > 2000) return json({ error: 'Review notes are too long' }, 400);
+  if (!notes || notes.length > 2000) return json({ error: 'Review notes are required and must be at most 2000 characters' }, 400);
   const reviewedAt = new Date().toISOString();
   const update = env.DB.prepare(
     `UPDATE marketplace_submissions
      SET status = ?, reviewed_at = ?, reviewed_by = ?, review_notes = ?
-     WHERE id = ?`,
+     WHERE id = ? AND status = 'quarantined'`,
   ).bind(body.decision, reviewedAt, reviewer, notes, submissionId);
-  let existing: { id: string } | null;
+  let existing: { id: string; status: string } | null;
   try {
     existing = await env.DB.prepare(
-      `SELECT id FROM marketplace_submissions WHERE id = ?`,
-    ).bind(submissionId).first<{ id: string }>();
+      `SELECT id, status FROM marketplace_submissions WHERE id = ?`,
+    ).bind(submissionId).first<{ id: string; status: string }>();
   } catch {
     return json({ error: 'Marketplace quarantine is temporarily unavailable' }, 503);
   }
   if (!existing) return json({ error: 'Submission not found' }, 404);
+  if (existing.status !== 'quarantined') return json({ error: 'This submission has already been reviewed' }, 409);
   const statements = [update];
   if (body.decision === 'rejected') {
     statements.push(env.DB.prepare(
-      `DELETE FROM marketplace_submission_chunks WHERE submission_id = ?`,
-    ).bind(submissionId));
+      `DELETE FROM marketplace_submission_chunks WHERE submission_id = ?
+       AND EXISTS (SELECT 1 FROM marketplace_submissions WHERE id = ? AND status = 'rejected' AND reviewed_at = ?)`,
+    ).bind(submissionId, submissionId, reviewedAt));
   }
   try {
-    await env.DB.batch(statements);
+    const results = await env.DB.batch(statements);
+    if (!results[0]?.meta.changes) return json({ error: 'This submission has already been reviewed' }, 409);
   } catch {
     return json({ error: 'Marketplace quarantine is temporarily unavailable' }, 503);
   }

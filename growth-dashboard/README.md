@@ -57,10 +57,22 @@ backend. Store a dedicated `MARKETPLACE_SUBMISSION_TOKEN` with
 `GNOSI_MARKETPLACE_SUBMISSION_URL` plus the matching
 `GNOSI_MARKETPLACE_SUBMISSION_TOKEN`.
 
+The private dashboard has a Marketplace section (`?view=marketplace`) with
+status filters, paginated submissions, verified package downloads, review notes
+and explicit decision confirmation. It remains usable when growth metrics are
+unavailable.
+
 Uploaded packages remain private as bounded D1 chunks. Metadata, downloads, and
 review state are available only through OAuth-protected moderation endpoints.
 Approval records human review but never signs or publishes the package; the
-official release workflow remains the only signing boundary.
+official release workflow remains the only signing boundary. Decisions are final:
+concurrent reviews return HTTP 409 rather than overwriting the audit record.
+Approved Vault templates expose an authenticated `GET
+/api/marketplace/submissions/{id}/receipt` download. The receipt binds the review
+to the package hash and is consumed by the Gnosi secretless validator; it is
+an audit record, not a cryptographic signature. Download it only from the
+authenticated dashboard. See
+[the release handoff guide](https://github.com/ismigar/Gnosi/blob/main/extensions/marketplace/MODERATION.md).
 
 The AlternativeTo listing should link to one of:
 
