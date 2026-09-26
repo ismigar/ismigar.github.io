@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { MarketplacePanel } from './MarketplacePanel';
 import { demoData } from './demo';
 import {
   dashboardLocales,
@@ -553,6 +554,7 @@ function AlternativeToPanel({
 }
 
 export default function App() {
+  const [view, setView] = useState<'overview' | 'marketplace'>(() => new URLSearchParams(window.location.search).get('view') === 'marketplace' ? 'marketplace' : 'overview');
   const [locale, setLocale] = useState<DashboardLocale>(initialLocale);
   const [range, setRange] = useState<RangeKey>('30');
   const [data, setData] = useState<DashboardData | null>(null);
@@ -682,7 +684,7 @@ export default function App() {
     [data],
   );
 
-  if (loading && !data) {
+  if (view === 'overview' && loading && !data) {
     return (
       <main className="loading-screen">
         <div className="brand-mark">G</div>
@@ -692,7 +694,7 @@ export default function App() {
     );
   }
 
-  if (error || !data) {
+  if (view === 'overview' && (error || !data)) {
     return (
       <main className="error-screen">
         <div className="brand-mark">G</div>
@@ -701,6 +703,7 @@ export default function App() {
         <button type="button" onClick={() => window.location.reload()}>
           {translate(locale, 'error.retry')}
         </button>
+        <button type="button" onClick={() => setView('marketplace')}>{translate(locale, 'marketplace.nav_marketplace')}</button>
       </main>
     );
   }
@@ -749,7 +752,15 @@ export default function App() {
         </div>
       </header>
 
+      <nav className="dashboard-nav" aria-label={translate(locale, 'marketplace.navigation')}>
+        {(['overview', 'marketplace'] as const).map((item) => <button type="button" key={item} aria-pressed={view === item} onClick={() => {
+          setView(item);
+          const url = new URL(window.location.href); url.searchParams.set('view', item); window.history.replaceState(null, '', url);
+        }}>{translate(locale, `marketplace.nav_${item}`)}</button>)}
+      </nav>
       <main>
+        {view === 'marketplace' && <MarketplacePanel locale={locale} apiFetch={apiFetch} />}
+        {view === 'overview' && data && <>
         <section className="hero-heading">
           <div>
             <span className="eyebrow">{translate(locale, 'hero.eyebrow', { from: data.range.from, to: data.range.to })}</span>
@@ -870,13 +881,14 @@ export default function App() {
             locale={locale}
           />
         </div>
+        </>}
       </main>
 
       <footer>
         <span>Gnosi Growth Intelligence</span>
         <span>
           {translate(locale, 'footer.updated', {
-            date: new Intl.DateTimeFormat(localeTags[locale], { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(data.generatedAt)),
+            date: new Intl.DateTimeFormat(localeTags[locale], { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(data?.generatedAt ?? Date.now())),
           })}
         </span>
       </footer>
