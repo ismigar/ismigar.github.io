@@ -35,6 +35,9 @@ jobs:
       - name: Verify published release history
         run: python scripts/sync_release_history.py --check
 
+      - name: Validate the public model-evaluation bank
+        run: python scripts/model_evaluations.py --check
+
       - name: Run public-site tests
         run: python -m unittest discover -s tests -v
 
